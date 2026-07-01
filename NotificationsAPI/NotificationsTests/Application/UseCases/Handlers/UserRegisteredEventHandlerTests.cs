@@ -33,8 +33,7 @@ public class UserRegisteredEventHandlerTests
         // Arrange
         var userId = Guid.NewGuid();
         var eventId = Guid.NewGuid();
-        var integrationEvent = new UserRegisteredEvent(userId, "Jane Doe", "jane@example.com",
-            RoleType.User)
+        var integrationEvent = new UserRegisteredEvent(userId, "Jane Doe", "jane@example.com")
         {
             EventId = eventId
         };
@@ -58,8 +57,7 @@ public class UserRegisteredEventHandlerTests
     public async Task HandleAsync_WithValidEvent_CommitsChanges()
     {
         // Arrange
-        var integrationEvent = new UserRegisteredEvent(Guid.NewGuid(), "Self Registered User", "self@example.com",
-            RoleType.User);
+        var integrationEvent = new UserRegisteredEvent(Guid.NewGuid(), "Self Registered User", "self@example.com");
 
         // Act
         await _handler.HandleAsync(integrationEvent);
@@ -72,8 +70,7 @@ public class UserRegisteredEventHandlerTests
     public async Task HandleAsync_WithInvalidEmail_ThrowsInvalidNotificationEmailException()
     {
         // Arrange
-        var integrationEvent = new UserRegisteredEvent(Guid.NewGuid(), "Invalid User", "not-an-email",
-            RoleType.User);
+        var integrationEvent = new UserRegisteredEvent(Guid.NewGuid(), "Invalid User", "not-an-email");
 
         // Act & Assert
         await Should.ThrowAsync<InvalidNotificationEmailException>(() => _handler.HandleAsync(integrationEvent));
@@ -83,8 +80,7 @@ public class UserRegisteredEventHandlerTests
     public async Task HandleAsync_WhenCommitThrows_PropagatesException()
     {
         // Arrange
-        var integrationEvent = new UserRegisteredEvent(Guid.NewGuid(), "Jane Doe", "jane@example.com",
-            RoleType.User);
+        var integrationEvent = new UserRegisteredEvent(Guid.NewGuid(), "Jane Doe", "jane@example.com");
 
         _unitOfWork.CommitAsync(Arg.Any<CancellationToken>())
             .Returns(Task.FromException<int>(new TimeoutException("Connection timeout")));
@@ -98,8 +94,7 @@ public class UserRegisteredEventHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var integrationEvent = new UserRegisteredEvent(userId, "Jane Doe", "  jane@example.com  ",
-            RoleType.User);
+        var integrationEvent = new UserRegisteredEvent(userId, "Jane Doe", "  jane@example.com  ");
 
         // Act
         await _handler.HandleAsync(integrationEvent);
@@ -115,7 +110,7 @@ public class UserRegisteredEventHandlerTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
-        var integrationEvent = new UserRegisteredEvent(Guid.NewGuid(), "Jane Doe", "jane@example.com", RoleType.User)
+        var integrationEvent = new UserRegisteredEvent(Guid.NewGuid(), "Jane Doe", "jane@example.com")
         {
             EventId = eventId
         };
@@ -134,8 +129,7 @@ public class UserRegisteredEventHandlerTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
-        var integrationEvent = new UserRegisteredEvent(Guid.NewGuid(), "Jane Doe", "jane@example.com",
-            RoleType.User)
+        var integrationEvent = new UserRegisteredEvent(Guid.NewGuid(), "Jane Doe", "jane@example.com")
         {
             EventId = eventId
         };
@@ -155,8 +149,7 @@ public class UserRegisteredEventHandlerTests
     {
         // Arrange
         var cancellationToken = CancellationToken.None;
-        var integrationEvent = new UserRegisteredEvent(Guid.NewGuid(), "Jane Doe", "jane@example.com",
-            RoleType.User);
+        var integrationEvent = new UserRegisteredEvent(Guid.NewGuid(), "Jane Doe", "jane@example.com");
 
         // Act
         await _handler.HandleAsync(integrationEvent, cancellationToken);

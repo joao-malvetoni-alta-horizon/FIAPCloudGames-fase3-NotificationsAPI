@@ -31,7 +31,7 @@ public class UserCreatedEventHandlerTests
         // Arrange
         var userId = Guid.NewGuid();
         var eventId = Guid.NewGuid();
-        var integrationEvent = new UserCreatedEvent(userId, "John Doe", "john@example.com", FiapCloudGames.Contracts.Users.RoleType.User)
+        var integrationEvent = new UserCreatedEvent(userId, "John Doe", "john@example.com")
         {
             EventId = eventId
         };
@@ -55,7 +55,7 @@ public class UserCreatedEventHandlerTests
     public async Task HandleAsync_WithValidEvent_CommitsChanges()
     {
         // Arrange
-        var integrationEvent = new UserCreatedEvent(Guid.NewGuid(), "Jane Doe", "jane@example.com", FiapCloudGames.Contracts.Users.RoleType.User);
+        var integrationEvent = new UserCreatedEvent(Guid.NewGuid(), "Jane Doe", "jane@example.com");
 
         // Act
         await _handler.HandleAsync(integrationEvent);
@@ -68,7 +68,7 @@ public class UserCreatedEventHandlerTests
     public async Task HandleAsync_WithInvalidEmail_ThrowsInvalidNotificationEmailException()
     {
         // Arrange
-        var integrationEvent = new UserCreatedEvent(Guid.NewGuid(), "Invalid User", "invalid-email", FiapCloudGames.Contracts.Users.RoleType.User);
+        var integrationEvent = new UserCreatedEvent(Guid.NewGuid(), "Invalid User", "invalid-email");
 
         // Act & Assert
         await Should.ThrowAsync<InvalidNotificationEmailException>(
@@ -79,7 +79,7 @@ public class UserCreatedEventHandlerTests
     public async Task HandleAsync_WhenCommitThrows_PropagatesException()
     {
         // Arrange
-        var integrationEvent = new UserCreatedEvent(Guid.NewGuid(), "John Doe", "john@example.com", FiapCloudGames.Contracts.Users.RoleType.User);
+        var integrationEvent = new UserCreatedEvent(Guid.NewGuid(), "John Doe", "john@example.com");
 
         _unitOfWork.CommitAsync(Arg.Any<CancellationToken>())
             .Returns(Task.FromException<int>(new InvalidOperationException("Database error")));
@@ -94,7 +94,7 @@ public class UserCreatedEventHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var integrationEvent = new UserCreatedEvent(userId, string.Empty, "user@example.com", FiapCloudGames.Contracts.Users.RoleType.User);
+        var integrationEvent = new UserCreatedEvent(userId, string.Empty, "user@example.com");
 
         // Act
         await _handler.HandleAsync(integrationEvent);
@@ -110,7 +110,7 @@ public class UserCreatedEventHandlerTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
-        var integrationEvent = new UserCreatedEvent(Guid.NewGuid(), "John Doe", "john@example.com", FiapCloudGames.Contracts.Users.RoleType.User)
+        var integrationEvent = new UserCreatedEvent(Guid.NewGuid(), "John Doe", "john@example.com")
         {
             EventId = eventId
         };
