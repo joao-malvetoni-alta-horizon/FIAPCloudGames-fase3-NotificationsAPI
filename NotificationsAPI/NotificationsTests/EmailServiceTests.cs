@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.Logging;
-using Moq;
+using NSubstitute;
 using NotificationsAPI.Services;
 
 namespace NotificationsTests
@@ -10,9 +10,9 @@ namespace NotificationsTests
         [Fact]
         public async Task Deve_Enviar_Email()
         {
-            var logger = new Mock<ILogger<EmailService>>();
+            var logger = Substitute.For<ILogger<EmailService>>();
 
-            var service = new EmailService(logger.Object);
+            var service = new EmailService(logger);
 
             var act = () => service.SendWelcomeEmail("joao@email.com", "João");
 
