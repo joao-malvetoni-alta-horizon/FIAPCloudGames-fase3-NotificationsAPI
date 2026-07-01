@@ -17,22 +17,6 @@ Executa automaticamente em push e pull requests.
 - Push em `main` ou branches `feature/**`
 - Pull requests para `main` ou branches `feature/**`
 
-## CodeQL Analysis (codeql-analysis.yml)
-
-Análise de segurança e qualidade de código automatizada.
-
-### Etapas:
-1. **Checkout** - Faz checkout do código
-2. **CodeQL Init** - Inicializa análise CodeQL
-3. **Setup .NET** - Configura .NET 10.0
-4. **Build** - Compila a solução
-5. **Analyze** - Executa análise CodeQL
-
-### Triggers:
-- Push em `main` ou branches `feature/**`
-- Pull requests para `main` ou branches `feature/**`
-- Agendado: toda segunda-feira às 2h UTC
-
 ## Artifacts
 
 Os workflows armazenam automaticamente:
