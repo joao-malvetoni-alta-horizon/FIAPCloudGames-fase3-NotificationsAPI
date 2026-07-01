@@ -35,14 +35,16 @@ public partial class Notification : Entity
         Guid? eventId = null)
     {
         ValidateUserId(userId);
-        ValidateUserEmail(recipientEmail);
+
+        string recipientEmailTrimmed = recipientEmail?.Trim() ?? string.Empty;
+        ValidateUserEmail(recipientEmailTrimmed);
 
         return new Notification
         {
             Id = Guid.NewGuid(),
             UserId = userId,
             Type = type,
-            RecipientEmail = recipientEmail.Trim(),
+            RecipientEmail = recipientEmailTrimmed,
             RecipientName = recipientName?.Trim(),
             Status = NotificationStatus.Pending,
             EventId = eventId,
