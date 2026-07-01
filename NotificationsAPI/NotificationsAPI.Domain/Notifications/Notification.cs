@@ -15,10 +15,10 @@ public partial class Notification : Entity
     public NotificationStatus Status { get; private set; } = NotificationStatus.Pending;
     public string RecipientEmail { get; private set; } = string.Empty;
     public string? RecipientName { get; private set; }
-    public string? Subject { get; private set; }
-    public string? Body { get; private set; }
+    public string? Subject { get; init; }
+    public string? Body { get; init; }
     public Guid? EventId { get; private set; }
-    public int RetryCount { get; private set; } = 0;
+    public int RetryCount { get; private set; }
     public string? LastError { get; private set; }
 
     /// <param name="userId">Usuário que deve receber a notificação.</param>
@@ -35,14 +35,16 @@ public partial class Notification : Entity
         Guid? eventId = null)
     {
         ValidateUserId(userId);
-        ValidateUserEmail(recipientEmail);
+        EnsureIsNotNullOrEmpty(recipientEmail);
+        string recipientEmailTrimmed = recipientEmail.Trim();
+        ValidateUserEmail(recipientEmailTrimmed);
 
         return new Notification
         {
             Id = Guid.NewGuid(),
             UserId = userId,
             Type = type,
-            RecipientEmail = recipientEmail.Trim(),
+            RecipientEmail = recipientEmailTrimmed,
             RecipientName = recipientName?.Trim(),
             Status = NotificationStatus.Pending,
             EventId = eventId,
@@ -50,13 +52,16 @@ public partial class Notification : Entity
         };
     }
 
-    private static void ValidateUserEmail(string recipientEmail)
+    private static void EnsureIsNotNullOrEmpty(string recipientEmail)
     {
         if (string.IsNullOrWhiteSpace(recipientEmail))
         {
             throw new NotificationDomainException("RecipientEmail cannot be empty.");
         }
+    }
 
+    private static void ValidateUserEmail(string recipientEmail)
+    {
         if (!IsValidEmail(recipientEmail))
         {
             throw new InvalidNotificationEmailException(recipientEmail);
