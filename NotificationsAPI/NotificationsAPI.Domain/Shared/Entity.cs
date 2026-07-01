@@ -40,7 +40,10 @@ public abstract class Entity
     /// <summary>
     /// Código hash baseado no Id da entidade.
     /// </summary>
-    public override int GetHashCode() => Id.GetHashCode();
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode();
+    }
 
     public static bool operator ==(Entity? left, Entity? right)
     {
@@ -53,5 +56,8 @@ public abstract class Entity
         return left.Equals(right);
     }
 
-    public static bool operator !=(Entity? left, Entity? right) => !(left == right);
+    public static bool operator !=(Entity? left, Entity? right)
+    {
+        return !(left == right);
+    }
 }

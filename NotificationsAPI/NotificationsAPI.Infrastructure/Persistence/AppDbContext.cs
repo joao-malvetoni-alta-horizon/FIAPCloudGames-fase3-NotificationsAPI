@@ -1,7 +1,7 @@
 namespace NotificationsAPI.Infrastructure.Persistence;
 
 using Microsoft.EntityFrameworkCore;
-using NotificationsAPI.Domain.Notifications;
+using Domain.Notifications;
 
 /// <summary>
 /// DbContext do Entity Framework Core para a API de Notificações.

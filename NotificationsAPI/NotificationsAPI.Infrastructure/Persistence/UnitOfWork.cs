@@ -1,7 +1,7 @@
 namespace NotificationsAPI.Infrastructure.Persistence;
 
-using NotificationsAPI.Domain.Shared;
-using NotificationsAPI.Domain.Notifications;
+using Domain.Shared;
+using Domain.Notifications;
 
 /// <summary>
 /// Implementação do padrão Unit of Work usando Entity Framework Core.
