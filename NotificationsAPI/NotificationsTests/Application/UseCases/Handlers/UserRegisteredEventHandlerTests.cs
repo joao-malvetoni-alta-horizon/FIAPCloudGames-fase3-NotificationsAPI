@@ -23,8 +23,7 @@ public class UserRegisteredEventHandlerTests
 
     public UserRegisteredEventHandlerTests()
     {
-        _unitOfWork.Notifications.Returns(_notificationRepository);
-        _handler = new UserRegisteredEventHandler(_unitOfWork, _logger);
+        _handler = new UserRegisteredEventHandler(_notificationRepository, _unitOfWork, _logger);
     }
 
     [Fact]

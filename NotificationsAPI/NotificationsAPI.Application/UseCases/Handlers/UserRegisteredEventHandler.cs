@@ -10,6 +10,7 @@ using Domain.Shared;
 /// Cria uma notificação de boas-vindas para o novo usuário.
 /// </summary>
 public partial class UserRegisteredEventHandler(
+    INotificationRepository notificationRepository,
     IUnitOfWork unitOfWork,
     ILogger<UserRegisteredEventHandler> logger) : IEventHandler<UserRegisteredEvent>
 {
@@ -26,7 +27,7 @@ public partial class UserRegisteredEventHandler(
                 integrationEvent.Name,
                 integrationEvent.EventId);
 
-            await unitOfWork.Notifications.AddAsync(notification, cancellationToken);
+            await notificationRepository.AddAsync(notification, cancellationToken);
             await unitOfWork.CommitAsync(cancellationToken);
 
             LogWelcomeNotificationCreated(integrationEvent.UserId);

@@ -3,6 +3,7 @@ namespace NotificationsAPI.Infrastructure.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Domain.Notifications;
 using Domain.Shared;
 using Messaging;
 using Persistence;
@@ -33,6 +34,7 @@ public static class InfrastructureServiceExtensions
         });
 
         // Registrar Unit of Work e repositórios
+        services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
