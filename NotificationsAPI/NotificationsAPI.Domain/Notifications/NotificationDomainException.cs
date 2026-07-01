@@ -3,7 +3,7 @@ namespace NotificationsAPI.Domain.Notifications;
 using Shared;
 
 /// <summary>
-/// Exception thrown when a notification domain business rule is violated.
+/// Exceção lançada quando uma regra de negócio do domínio de notificação é violada.
 /// </summary>
 public class NotificationDomainException : DomainException
 {

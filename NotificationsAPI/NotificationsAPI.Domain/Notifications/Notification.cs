@@ -4,75 +4,75 @@ using Shared;
 using System.Text.RegularExpressions;
 
 /// <summary>
-/// Notification aggregate root. Represents a notification sent to a user.
+/// Raiz de agregado de Notificação. Representa uma notificação enviada para um usuário.
 /// </summary>
 public class Notification : Entity
 {
     private Notification()
     {
-        // For EF Core
+        // Para EF Core
     }
 
     /// <summary>
-    /// User ID who should receive this notification.
+    /// ID do usuário que deve receber essa notificação.
     /// </summary>
     public Guid UserId { get; private set; }
 
     /// <summary>
-    /// Type of notification.
+    /// Tipo de notificação.
     /// </summary>
     public NotificationType Type { get; private set; }
 
     /// <summary>
-    /// Current delivery status.
+    /// Status atual de entrega.
     /// </summary>
     public NotificationStatus Status { get; private set; } = NotificationStatus.Pending;
 
     /// <summary>
-    /// Recipient email address.
+    /// Endereço de email do destinatário.
     /// </summary>
     public string RecipientEmail { get; private set; } = string.Empty;
 
     /// <summary>
-    /// Recipient name.
+    /// Nome do destinatário.
     /// </summary>
     public string? RecipientName { get; private set; }
 
     /// <summary>
-    /// Notification subject line.
+    /// Assunto da notificação.
     /// </summary>
     public string? Subject { get; private set; }
 
     /// <summary>
-    /// Notification message body.
+    /// Corpo da mensagem de notificação.
     /// </summary>
     public string? Body { get; private set; }
 
     /// <summary>
-    /// ID of the originating integration event (for idempotency).
+    /// ID do evento de integração originário (para idempotência).
     /// </summary>
     public Guid? EventId { get; private set; }
 
     /// <summary>
-    /// Number of times this notification has been retried.
+    /// Número de vezes que essa notificação foi retentada.
     /// </summary>
     public int RetryCount { get; private set; } = 0;
 
     /// <summary>
-    /// Last error message if sending failed.
+    /// Última mensagem de erro se o envio falhou.
     /// </summary>
     public string? LastError { get; private set; }
 
     /// <summary>
-    /// Factory method to create a new notification.
+    /// Método factory para criar uma nova notificação.
     /// </summary>
-    /// <param name="userId">User who should receive the notification.</param>
-    /// <param name="type">Type of notification.</param>
-    /// <param name="recipientEmail">Email address to send to.</param>
-    /// <param name="recipientName">Name of the recipient.</param>
-    /// <param name="eventId">ID of the originating event.</param>
-    /// <returns>A new Notification instance.</returns>
-    /// <exception cref="NotificationDomainException">Thrown if parameters are invalid.</exception>
+    /// <param name="userId">Usuário que deve receber a notificação.</param>
+    /// <param name="type">Tipo de notificação.</param>
+    /// <param name="recipientEmail">Endereço de email para enviar.</param>
+    /// <param name="recipientName">Nome do destinatário.</param>
+    /// <param name="eventId">ID do evento originário.</param>
+    /// <returns>Uma nova instância de Notification.</returns>
+    /// <exception cref="NotificationDomainException">Lançado se os parâmetros forem inválidos.</exception>
     public static Notification Create(
         Guid userId,
         NotificationType type,
@@ -103,14 +103,14 @@ public class Notification : Entity
     }
 
     /// <summary>
-    /// Marks this notification as successfully sent.
+    /// Marca essa notificação como enviada com sucesso.
     /// </summary>
-    /// <exception cref="NotificationDomainException">Thrown if notification is not in Pending status.</exception>
+    /// <exception cref="NotificationDomainException">Lançado se a notificação não estiver em status Pendente.</exception>
     public void MarkAsSent()
     {
         if (Status != NotificationStatus.Pending)
             throw new NotificationDomainException(
-                $"Only Pending notifications can be marked as Sent. Current status: {Status}");
+                $"Apenas notificações Pendentes podem ser marcadas como Enviadas. Status atual: {Status}");
 
         Status = NotificationStatus.Sent;
         UpdatedAt = DateTime.UtcNow;
@@ -118,15 +118,15 @@ public class Notification : Entity
     }
 
     /// <summary>
-    /// Marks this notification as failed.
+    /// Marca essa notificação como falhada.
     /// </summary>
-    /// <param name="errorMessage">Error message describing why it failed.</param>
-    /// <exception cref="NotificationDomainException">Thrown if notification is not in Pending status.</exception>
+    /// <param name="errorMessage">Mensagem de erro descrevendo por que falhou.</param>
+    /// <exception cref="NotificationDomainException">Lançado se a notificação não estiver em status Pendente.</exception>
     public void MarkAsFailed(string errorMessage)
     {
         if (Status != NotificationStatus.Pending)
             throw new NotificationDomainException(
-                $"Only Pending notifications can be marked as Failed. Current status: {Status}");
+                $"Apenas notificações Pendentes podem ser marcadas como Falhadas. Status atual: {Status}");
 
         Status = NotificationStatus.Failed;
         LastError = errorMessage;
@@ -134,21 +134,21 @@ public class Notification : Entity
     }
 
     /// <summary>
-    /// Marks this notification as delivered.
+    /// Marca essa notificação como entregue.
     /// </summary>
-    /// <exception cref="NotificationDomainException">Thrown if notification is not in Sent status.</exception>
+    /// <exception cref="NotificationDomainException">Lançado se a notificação não estiver em status Enviado.</exception>
     public void MarkAsDelivered()
     {
         if (Status != NotificationStatus.Sent)
             throw new NotificationDomainException(
-                $"Only Sent notifications can be marked as Delivered. Current status: {Status}");
+                $"Apenas notificações Enviadas podem ser marcadas como Entregues. Status atual: {Status}");
 
         Status = NotificationStatus.Delivered;
         UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
-    /// Increments the retry count.
+    /// Incrementa a contagem de tentativas.
     /// </summary>
     public void IncrementRetryCount()
     {
@@ -157,19 +157,19 @@ public class Notification : Entity
     }
 
     /// <summary>
-    /// Resets the notification to Pending status for retry.
+    /// Redefine a notificação para status Pendente para retentar.
     /// </summary>
     public void ResetForRetry()
     {
         if (RetryCount >= 3)
-            throw new NotificationDomainException("Maximum retry attempts exceeded.");
+            throw new NotificationDomainException("Número máximo de tentativas ultrapassado.");
 
         Status = NotificationStatus.Pending;
         UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
-    /// Validates if the given email address is in a valid format.
+    /// Valida se o endereço de email fornecido está em um formato válido.
     /// </summary>
     private static bool IsValidEmail(string email)
     {

@@ -1,27 +1,27 @@
 namespace NotificationsAPI.Domain.Shared;
 
 /// <summary>
-/// Base class for all domain entities. Provides identity and equality comparison.
+/// Classe base para todas as entidades do domínio. Fornece identidade e comparação de igualdade.
 /// </summary>
 public abstract class Entity
 {
     /// <summary>
-    /// Unique identifier for this entity.
+    /// Identificador único desta entidade.
     /// </summary>
     public Guid Id { get; protected set; } = Guid.NewGuid();
 
     /// <summary>
-    /// Timestamp when the entity was created (UTC).
+    /// Momento de criação da entidade (UTC).
     /// </summary>
     public DateTime CreatedAt { get; protected set; } = DateTime.UtcNow;
 
     /// <summary>
-    /// Timestamp when the entity was last updated (UTC). Null if never updated.
+    /// Momento da última atualização da entidade (UTC). Nulo se nunca foi atualizado.
     /// </summary>
     public DateTime? UpdatedAt { get; protected set; }
 
     /// <summary>
-    /// Two entities are equal if they have the same Id.
+    /// Duas entidades são iguais se possuem o mesmo Id.
     /// </summary>
     public override bool Equals(object? obj)
     {
@@ -38,7 +38,7 @@ public abstract class Entity
     }
 
     /// <summary>
-    /// Hash code based on entity Id.
+    /// Código hash baseado no Id da entidade.
     /// </summary>
     public override int GetHashCode() => Id.GetHashCode();
 

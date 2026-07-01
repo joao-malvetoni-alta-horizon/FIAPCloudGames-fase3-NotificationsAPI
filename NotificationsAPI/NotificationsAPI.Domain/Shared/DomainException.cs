@@ -1,7 +1,7 @@
 namespace NotificationsAPI.Domain.Shared;
 
 /// <summary>
-/// Base exception for domain-level errors. Represents violations of business rules.
+/// Exceção base para erros de nível de domínio. Representa violações de regras de negócio.
 /// </summary>
 public class DomainException : Exception
 {

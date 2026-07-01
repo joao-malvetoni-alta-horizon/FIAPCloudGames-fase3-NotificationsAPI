@@ -1,12 +1,12 @@
 namespace NotificationsAPI.Domain.Shared;
 
 /// <summary>
-/// Interface for unit of work pattern. Manages transaction boundaries across repositories.
+/// Interface para o padrão unit of work. Gerencia limites de transação entre repositórios.
 /// </summary>
 public interface IUnitOfWork : IAsyncDisposable
 {
     /// <summary>
-    /// Commits all changes made through repositories to the persistence store.
+    /// Confirma todas as mudanças feitas através dos repositórios no armazenamento de persistência.
     /// </summary>
     Task<int> CommitAsync(CancellationToken cancellationToken = default);
 }

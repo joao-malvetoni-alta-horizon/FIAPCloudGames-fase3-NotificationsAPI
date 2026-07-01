@@ -1,28 +1,25 @@
 namespace NotificationsAPI.Infrastructure.Email;
 
 /// <summary>
-/// Interface for email notification service.
+/// Contrato para o serviço de notificações por email.
 /// </summary>
 public interface IEmailService
 {
     /// <summary>
-    /// Sends a welcome email to a new user.
+    /// Envia um email de boas-vindas para um novo usuário.
     /// </summary>
-    /// <param name="email">Recipient email address.</param>
-    /// <param name="name">Recipient name.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="email">Endereço de email do destinatário.</param>
+    /// <param name="name">Nome do destinatário.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
     Task SendWelcomeEmailAsync(string email, string name, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Sends a purchase confirmation email.
+    /// Envia um email de confirmação de compra de jogo.
     /// </summary>
-    /// <param name="email">Recipient email address.</param>
-    /// <param name="userId">User ID.</param>
-    /// <param name="gameId">Game ID that was purchased.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    Task SendPurchaseConfirmationAsync(
-        string email,
-        Guid userId,
-        Guid gameId,
+    /// <param name="email">Endereço de email do destinatário.</param>
+    /// <param name="userId">Identificador do usuário.</param>
+    /// <param name="gameId">Identificador do jogo que foi comprado.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    Task SendPurchaseConfirmationAsync(string email, Guid userId, Guid gameId,
         CancellationToken cancellationToken = default);
 }

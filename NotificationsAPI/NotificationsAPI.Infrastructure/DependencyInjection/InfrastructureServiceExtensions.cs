@@ -3,27 +3,27 @@ namespace NotificationsAPI.Infrastructure.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using NotificationsAPI.Domain.Shared;
-using NotificationsAPI.Infrastructure.Messaging;
-using NotificationsAPI.Infrastructure.Persistence;
+using Domain.Shared;
+using Messaging;
+using Persistence;
 
 /// <summary>
-/// Extension methods for registering infrastructure services.
+/// Métodos de extensão para registrar serviços de infraestrutura.
 /// </summary>
 public static class InfrastructureServiceExtensions
 {
     /// <summary>
-    /// Adds infrastructure services to the dependency injection container.
+    /// Adiciona serviços de infraestrutura ao contêiner de injeção de dependência.
     /// </summary>
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Register RabbitMQ settings
+        // Registrar configurações do RabbitMQ
         services.Configure<RabbitMqSettings>(
             configuration.GetSection(RabbitMqSettings.SectionName));
 
-        // Register database context
+        // Registrar contexto de banco de dados
         var connectionString = configuration.GetConnectionString("DefaultConnection");
         services.AddDbContext<AppDbContext>(options =>
         {
@@ -32,14 +32,14 @@ public static class InfrastructureServiceExtensions
                 npgsqlOptions => npgsqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName));
         });
 
-        // Register Unit of Work and repositories
+        // Registrar Unit of Work e repositórios
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
     }
 
     /// <summary>
-    /// Migrates the database to the latest version.
+    /// Realiza migração do banco de dados para a versão mais recente.
     /// </summary>
     public static async Task MigrateAsync(this IServiceProvider services)
     {

@@ -3,36 +3,36 @@ namespace NotificationsAPI.Domain.Notifications;
 using Shared;
 
 /// <summary>
-/// Repository interface for Notification aggregate.
+/// Interface de repositório para o agregado de Notificação.
 /// </summary>
 public interface INotificationRepository : IRepository<Notification>
 {
     /// <summary>
-    /// Gets all notifications for a specific user.
+    /// Obtém todas as notificações de um usuário específico.
     /// </summary>
-    /// <param name="userId">The user's ID.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>List of notifications for the user.</returns>
+    /// <param name="userId">ID do usuário.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    /// <returns>Lista de notificações do usuário.</returns>
     Task<IReadOnlyList<Notification>> GetByUserIdAsync(
         Guid userId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets all notifications with a specific status.
+    /// Obtém todas as notificações com um status específico.
     /// </summary>
-    /// <param name="status">The status to filter by.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>List of notifications with the specified status.</returns>
+    /// <param name="status">O status para filtrar.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    /// <returns>Lista de notificações com o status especificado.</returns>
     Task<IReadOnlyList<Notification>> GetByStatusAsync(
         NotificationStatus status,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets a notification by its originating event ID (for idempotency).
+    /// Obtém uma notificação pelo ID do evento originário (para idempotência).
     /// </summary>
-    /// <param name="eventId">The event ID.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The notification if found; otherwise null.</returns>
+    /// <param name="eventId">ID do evento.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    /// <returns>A notificação se encontrada; caso contrário, nulo.</returns>
     Task<Notification?> GetByEventIdAsync(
         Guid eventId,
         CancellationToken cancellationToken = default);

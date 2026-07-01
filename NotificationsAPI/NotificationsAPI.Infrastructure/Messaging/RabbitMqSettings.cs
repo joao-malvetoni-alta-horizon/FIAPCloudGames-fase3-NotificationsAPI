@@ -1,44 +1,44 @@
 namespace NotificationsAPI.Infrastructure.Messaging;
 
 /// <summary>
-/// Configuration settings for RabbitMQ connection.
+/// Configurações de conexão com RabbitMQ.
 /// </summary>
 public class RabbitMqSettings
 {
     public const string SectionName = "RabbitMq";
 
     /// <summary>
-    /// RabbitMQ host name or IP address.
+    /// Nome do host ou endereço IP do RabbitMQ.
     /// </summary>
     public string Host { get; set; } = "localhost";
 
     /// <summary>
-    /// RabbitMQ port number.
+    /// Número da porta do RabbitMQ.
     /// </summary>
     public int Port { get; set; } = 5672;
 
     /// <summary>
-    /// RabbitMQ username for authentication.
+    /// Nome de usuário do RabbitMQ para autenticação.
     /// </summary>
     public string Username { get; set; } = "guest";
 
     /// <summary>
-    /// RabbitMQ password for authentication.
+    /// Senha do RabbitMQ para autenticação.
     /// </summary>
     public string Password { get; set; } = "guest";
 
     /// <summary>
-    /// RabbitMQ virtual host.
+    /// Host virtual do RabbitMQ.
     /// </summary>
     public string VirtualHost { get; set; } = "/";
 
     /// <summary>
-    /// Maximum number of connection retries.
+    /// Número máximo de tentativas de conexão.
     /// </summary>
     public int MaxConnectionRetries { get; set; } = 3;
 
     /// <summary>
-    /// Delay in milliseconds between connection retries.
+    /// Atraso em milissegundos entre tentativas de conexão.
     /// </summary>
     public int ConnectionRetryDelayMs { get; set; } = 1000;
 }

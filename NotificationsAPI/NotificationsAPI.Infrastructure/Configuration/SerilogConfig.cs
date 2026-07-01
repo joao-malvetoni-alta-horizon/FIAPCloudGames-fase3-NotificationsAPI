@@ -1,19 +1,18 @@
 namespace NotificationsAPI.Infrastructure.Configuration;
 
-using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 
 /// <summary>
-/// Configuration for Serilog structured logging.
+/// Configuração para logging estruturado com Serilog.
 /// </summary>
 public static class SerilogConfig
 {
     /// <summary>
-    /// Configures Serilog with console and file sinks.
+    /// Configura Serilog com sinks de console e arquivo.
     /// </summary>
-    public static Logger ConfigureLogger(IConfiguration configuration)
+    public static Logger ConfigureLogger()
     {
         return new LoggerConfiguration()
             .MinimumLevel.Information()
@@ -23,7 +22,8 @@ public static class SerilogConfig
             .Enrich.FromLogContext()
             .Enrich.WithProperty("ApplicationName", "NotificationsAPI")
             .WriteTo.Console(
-                outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                outputTemplate:
+                "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] {Message:lj}{NewLine}{Exception}")
             .CreateLogger();
     }
 }

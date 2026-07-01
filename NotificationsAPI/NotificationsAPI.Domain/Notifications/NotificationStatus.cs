@@ -1,27 +1,27 @@
 namespace NotificationsAPI.Domain.Notifications;
 
 /// <summary>
-/// Enumeration of notification delivery statuses.
+/// Enumeração dos status de entrega de notificações.
 /// </summary>
 public enum NotificationStatus
 {
     /// <summary>
-    /// Notification is pending processing.
+    /// Notificação está pendente de processamento.
     /// </summary>
     Pending = 0,
 
     /// <summary>
-    /// Notification has been successfully sent.
+    /// Notificação foi enviada com sucesso.
     /// </summary>
     Sent = 1,
 
     /// <summary>
-    /// Notification failed to send.
+    /// Falha no envio da notificação.
     /// </summary>
     Failed = 2,
 
     /// <summary>
-    /// Notification has been delivered to recipient.
+    /// Notificação foi entregue ao destinatário.
     /// </summary>
     Delivered = 3
 }

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using NotificationsAPI.Domain.Notifications;
 
 /// <summary>
-/// Entity Framework Core DbContext for Notifications API.
+/// DbContext do Entity Framework Core para a API de Notificações.
 /// </summary>
 public class AppDbContext : DbContext
 {
@@ -13,7 +13,7 @@ public class AppDbContext : DbContext
     }
 
     /// <summary>
-    /// Notifications DbSet.
+    /// DbSet de Notificações.
     /// </summary>
     public DbSet<Notification> Notifications => Set<Notification>();
 
@@ -21,7 +21,7 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Configure Notification entity
+        // Configurar a entidade Notification
         modelBuilder.Entity<Notification>(builder =>
         {
             builder.HasKey(n => n.Id);
@@ -67,7 +67,7 @@ public class AppDbContext : DbContext
 
             builder.Property(n => n.UpdatedAt);
 
-            // Create indexes for common queries
+            // Criar índices para consultas comuns
             builder.HasIndex(n => n.UserId)
                 .HasDatabaseName("idx_notification_user_id");
 
@@ -81,7 +81,7 @@ public class AppDbContext : DbContext
             builder.HasIndex(n => n.CreatedAt)
                 .HasDatabaseName("idx_notification_created_at");
 
-            // Table name
+            // Nome da tabela
             builder.ToTable("notifications");
         });
     }

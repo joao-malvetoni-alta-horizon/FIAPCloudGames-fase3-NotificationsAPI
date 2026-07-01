@@ -4,7 +4,7 @@ using NotificationsAPI.Domain.Shared;
 using NotificationsAPI.Domain.Notifications;
 
 /// <summary>
-/// Implementation of Unit of Work pattern using Entity Framework Core.
+/// Implementação do padrão Unit of Work usando Entity Framework Core.
 /// </summary>
 public class UnitOfWork : IUnitOfWork
 {
@@ -17,7 +17,7 @@ public class UnitOfWork : IUnitOfWork
     }
 
     /// <summary>
-    /// Gets or creates the notification repository.
+    /// Obtém ou cria o repositório de notificações.
     /// </summary>
     public INotificationRepository Notifications
     {
@@ -29,7 +29,7 @@ public class UnitOfWork : IUnitOfWork
     }
 
     /// <summary>
-    /// Commits all changes to the database.
+    /// Confirma todas as mudanças no banco de dados.
     /// </summary>
     public async Task<int> CommitAsync(CancellationToken cancellationToken = default)
     {
@@ -37,7 +37,7 @@ public class UnitOfWork : IUnitOfWork
     }
 
     /// <summary>
-    /// Disposes the DbContext.
+    /// Descarta o DbContext.
     /// </summary>
     public async ValueTask DisposeAsync()
     {
