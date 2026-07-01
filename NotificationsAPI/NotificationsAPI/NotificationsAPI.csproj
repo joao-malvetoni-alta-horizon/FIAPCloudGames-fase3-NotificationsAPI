@@ -1,29 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <UserSecretsId>3a050783-d8f5-45ef-8dc8-2fd0f6c6705f</UserSecretsId>
-    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-  </PropertyGroup>
+    <PropertyGroup>
+        <UserSecretsId>3a050783-d8f5-45ef-8dc8-2fd0f6c6705f</UserSecretsId>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\NotificationsAPI.Application\NotificationsAPI.Application.csproj" />
-    <ProjectReference Include="..\NotificationsAPI.Infrastructure\NotificationsAPI.Infrastructure.csproj" />
-    <ProjectReference Include="..\NotificationsAPI.Domain\NotificationsAPI.Domain.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\NotificationsAPI.Application\NotificationsAPI.Application.csproj"/>
+        <ProjectReference Include="..\NotificationsAPI.Infrastructure\NotificationsAPI.Infrastructure.csproj"/>
+        <ProjectReference Include="..\NotificationsAPI.Domain\NotificationsAPI.Domain.csproj"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="FluentAssertions" Version="8.10.0" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
-    <PackageReference Include="Serilog" Version="4.2.0" />
-    <PackageReference Include="Serilog.AspNetCore" Version="8.1.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="..\..\..\FIAPCloudGames-fase2-UsersAPI\FCG.UsersApi.slnx">
-      <Link>FCG.UsersApi.slnx</Link>
-    </Content>
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="FluentAssertions" Version="8.10.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9"/>
+        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0"/>
+        <PackageReference Include="Serilog" Version="4.2.0"/>
+        <PackageReference Include="Serilog.AspNetCore" Version="8.1.1"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3"/>
+    </ItemGroup>
 
 </Project>
