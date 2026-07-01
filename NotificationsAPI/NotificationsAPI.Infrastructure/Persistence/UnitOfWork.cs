@@ -6,15 +6,9 @@ using Domain.Notifications;
 /// <summary>
 /// Implementação do padrão Unit of Work usando Entity Framework Core.
 /// </summary>
-public class UnitOfWork : IUnitOfWork
+public class UnitOfWork(AppDbContext context) : IUnitOfWork
 {
-    private readonly AppDbContext _context;
-    private INotificationRepository? _notificationRepository;
-
-    public UnitOfWork(AppDbContext context)
-    {
-        _context = context;
-    }
+    private readonly AppDbContext _context = context;
 
     /// <summary>
     /// Obtém ou cria o repositório de notificações.
@@ -23,8 +17,8 @@ public class UnitOfWork : IUnitOfWork
     {
         get
         {
-            _notificationRepository ??= new NotificationRepository(_context);
-            return _notificationRepository;
+            field ??= new NotificationRepository(_context);
+            return field;
         }
     }
 

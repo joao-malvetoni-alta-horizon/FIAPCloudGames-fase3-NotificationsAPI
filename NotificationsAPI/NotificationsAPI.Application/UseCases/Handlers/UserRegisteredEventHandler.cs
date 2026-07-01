@@ -20,11 +20,11 @@ public partial class UserRegisteredEventHandler(
             LogProcessingUserRegisteredEvent(integrationEvent.UserId, integrationEvent.Name);
 
             var notification = Notification.Create(
-                userId: integrationEvent.UserId,
-                type: NotificationType.WelcomeEmail,
-                recipientEmail: integrationEvent.Email,
-                recipientName: integrationEvent.Name,
-                eventId: integrationEvent.EventId);
+                integrationEvent.UserId,
+                NotificationType.WelcomeEmail,
+                integrationEvent.Email,
+                integrationEvent.Name,
+                integrationEvent.EventId);
 
             await unitOfWork.Notifications.AddAsync(notification, cancellationToken);
             await unitOfWork.CommitAsync(cancellationToken);

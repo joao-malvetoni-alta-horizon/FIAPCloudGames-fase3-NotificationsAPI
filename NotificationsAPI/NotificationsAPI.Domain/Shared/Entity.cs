@@ -25,16 +25,8 @@ public abstract class Entity
     /// </summary>
     public override bool Equals(object? obj)
     {
-        if (obj is not Entity other)
-            return false;
-
-        if (ReferenceEquals(this, other))
-            return true;
-
-        if (Id == Guid.Empty || other.Id == Guid.Empty)
-            return false;
-
-        return Id == other.Id;
+        return obj is Entity other && (ReferenceEquals(this, other) ||
+                                       (Id != Guid.Empty && other.Id != Guid.Empty && Id == other.Id));
     }
 
     /// <summary>
@@ -47,13 +39,7 @@ public abstract class Entity
 
     public static bool operator ==(Entity? left, Entity? right)
     {
-        if (left is null && right is null)
-            return true;
-
-        if (left is null || right is null)
-            return false;
-
-        return left.Equals(right);
+        return (left is null && right is null) || (left is not null && right is not null && left.Equals(right));
     }
 
     public static bool operator !=(Entity? left, Entity? right)

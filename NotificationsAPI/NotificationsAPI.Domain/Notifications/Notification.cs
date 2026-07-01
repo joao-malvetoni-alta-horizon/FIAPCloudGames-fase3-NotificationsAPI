@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 /// <summary>
 /// Raiz de agregado de Notificação. Representa uma notificação enviada para um usuário.
 /// </summary>
-public class Notification : Entity
+public partial class Notification : Entity
 {
     private Notification() { }
 
@@ -34,14 +34,8 @@ public class Notification : Entity
         string? recipientName = null,
         Guid? eventId = null)
     {
-        if (userId == Guid.Empty)
-            throw new NotificationDomainException("UserId cannot be empty.");
-
-        if (string.IsNullOrWhiteSpace(recipientEmail))
-            throw new NotificationDomainException("RecipientEmail cannot be empty.");
-
-        if (!IsValidEmail(recipientEmail))
-            throw new InvalidNotificationEmailException(recipientEmail);
+        ValidateUserId(userId);
+        ValidateUserEmail(recipientEmail);
 
         return new Notification
         {
@@ -56,11 +50,34 @@ public class Notification : Entity
         };
     }
 
+    private static void ValidateUserEmail(string recipientEmail)
+    {
+        if (string.IsNullOrWhiteSpace(recipientEmail))
+        {
+            throw new NotificationDomainException("RecipientEmail cannot be empty.");
+        }
+
+        if (!IsValidEmail(recipientEmail))
+        {
+            throw new InvalidNotificationEmailException(recipientEmail);
+        }
+    }
+
+    private static void ValidateUserId(Guid userId)
+    {
+        if (userId == Guid.Empty)
+        {
+            throw new NotificationDomainException("UserId cannot be empty.");
+        }
+    }
+
     /// <exception cref="InvalidNotificationStatusException">Status inválido para esta operação.</exception>
     public void MarkAsSent()
     {
         if (Status != NotificationStatus.Pending)
+        {
             throw new InvalidNotificationStatusException(Status, NotificationStatus.Pending, nameof(MarkAsSent));
+        }
 
         Status = NotificationStatus.Sent;
         UpdatedAt = DateTime.UtcNow;
@@ -71,7 +88,9 @@ public class Notification : Entity
     public void MarkAsFailed(string errorMessage)
     {
         if (Status != NotificationStatus.Pending)
+        {
             throw new InvalidNotificationStatusException(Status, NotificationStatus.Pending, nameof(MarkAsFailed));
+        }
 
         Status = NotificationStatus.Failed;
         LastError = errorMessage;
@@ -82,7 +101,9 @@ public class Notification : Entity
     public void MarkAsDelivered()
     {
         if (Status != NotificationStatus.Sent)
+        {
             throw new InvalidNotificationStatusException(Status, NotificationStatus.Sent, nameof(MarkAsDelivered));
+        }
 
         Status = NotificationStatus.Delivered;
         UpdatedAt = DateTime.UtcNow;
@@ -98,7 +119,9 @@ public class Notification : Entity
     public void ResetForRetry()
     {
         if (RetryCount >= MaxRetryAttemptsExceededException.MaxAttempts)
+        {
             throw new MaxRetryAttemptsExceededException(RetryCount);
+        }
 
         Status = NotificationStatus.Pending;
         UpdatedAt = DateTime.UtcNow;
@@ -108,12 +131,14 @@ public class Notification : Entity
     {
         try
         {
-            var emailPattern = @"^[^\s@]+@[^\s@]+\.[^\s@]+$";
-            return Regex.IsMatch(email, emailPattern);
+            return EmailPattern().IsMatch(email);
         }
         catch
         {
             return false;
         }
     }
+
+    [GeneratedRegex(@"^[^\s@]+@[^\s@]+\.[^\s@]+$")]
+    private static partial Regex EmailPattern();
 }

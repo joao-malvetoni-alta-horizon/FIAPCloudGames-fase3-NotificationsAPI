@@ -24,7 +24,7 @@ public static class InfrastructureServiceExtensions
             configuration.GetSection(RabbitMqSettings.SectionName));
 
         // Registrar contexto de banco de dados
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        string? connectionString = configuration.GetConnectionString("DefaultConnection");
         services.AddDbContext<AppDbContext>(options =>
         {
             options.UseNpgsql(
@@ -43,7 +43,7 @@ public static class InfrastructureServiceExtensions
     /// </summary>
     public static async Task MigrateAsync(this IServiceProvider services)
     {
-        using var scope = services.CreateScope();
+        using IServiceScope scope = services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         await context.Database.MigrateAsync();
     }
