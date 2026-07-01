@@ -25,12 +25,15 @@ jobs:
 
       - name: Restore dependencies
         run: dotnet restore
+        working-directory: ./NotificationsAPI
 
       - name: Build solution
         run: dotnet build --no-restore --configuration Release
+        working-directory: ./NotificationsAPI
 
       - name: Run tests
         run: dotnet test --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
+        working-directory: ./NotificationsAPI
 
       - name: Upload test results
         if: always()
@@ -41,6 +44,7 @@ jobs:
 
       - name: Verify code style
         run: dotnet build --no-restore --configuration Release /p:EnforceCodeStyleInBuild=true
+        working-directory: ./NotificationsAPI
 
       - name: Check for uncommitted changes
         run: |

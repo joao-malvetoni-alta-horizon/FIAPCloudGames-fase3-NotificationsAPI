@@ -44,6 +44,7 @@ jobs:
       - name: Build
         run: |
           dotnet build --configuration Release
+        working-directory: ./NotificationsAPI
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
