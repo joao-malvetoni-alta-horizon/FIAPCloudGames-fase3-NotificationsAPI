@@ -16,7 +16,6 @@ public static class ApplicationServiceExtensions
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         // Registrar event handlers
-        services.AddScoped<IEventHandler<UserCreatedEvent>, UserCreatedEventHandler>();
         services.AddScoped<IEventHandler<UserRegisteredEvent>, UserRegisteredEventHandler>();
 
         return services;
