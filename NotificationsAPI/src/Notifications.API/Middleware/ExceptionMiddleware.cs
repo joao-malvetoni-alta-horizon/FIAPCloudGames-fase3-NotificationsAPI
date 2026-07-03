@@ -2,13 +2,18 @@ namespace Notifications.API.Middleware;
 
 using System.Text.Json;
 using Notifications.Domain.Shared;
-using Serilog;
 
 /// <summary>
 /// Middleware para capturar e tratar exceções não tratadas globalmente.
 /// </summary>
-public class ExceptionMiddleware(RequestDelegate next)
+public partial class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
 {
+    [LoggerMessage(
+        EventId = 1,
+        Level = LogLevel.Error,
+        Message = "Uma exceção não tratada foi capturada")]
+    private partial void LogUnhandledException(Exception exception);
+
     public async Task InvokeAsync(HttpContext context)
     {
         try
@@ -17,7 +22,7 @@ public class ExceptionMiddleware(RequestDelegate next)
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Uma exceção não tratada foi capturada");
+            LogUnhandledException(ex);
             await HandleExceptionAsync(context, ex);
         }
     }

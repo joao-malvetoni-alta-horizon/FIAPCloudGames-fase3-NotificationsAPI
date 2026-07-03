@@ -37,20 +37,21 @@ public record NotificationResponse(
     DateTime CreatedAt,
     DateTime? UpdatedAt)
 {
-    public NotificationResponse(Notification notification) : this(
-        notification.Id,
-        notification.UserId,
-        notification.Type,
-        notification.Status,
-        notification.RecipientEmail,
-        notification.RecipientName,
-        notification.Subject,
-        notification.Body,
-        notification.EventId,
-        notification.RetryCount,
-        notification.LastError,
-        notification.CreatedAt,
-        notification.UpdatedAt)
+    public static NotificationResponse FromDomain(Notification notification)
     {
+        return new NotificationResponse(
+            notification.Id,
+            notification.UserId,
+            notification.Type,
+            notification.Status,
+            notification.RecipientEmail,
+            notification.RecipientName,
+            notification.Subject,
+            notification.Body,
+            notification.EventId,
+            notification.RetryCount,
+            notification.LastError,
+            notification.CreatedAt,
+            notification.UpdatedAt);
     }
 }

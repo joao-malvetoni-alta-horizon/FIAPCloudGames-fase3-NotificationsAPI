@@ -1,9 +1,8 @@
 namespace Notifications.API.Endpoints;
 
 using Notifications.Domain.Notifications;
-using Notifications.Domain.Shared;
-using Notifications.Infrastructure.Persistence;
-using Notifications.API.Models;
+using Domain.Shared;
+using Models;
 
 /// <summary>
 /// Endpoints para gerenciamento de notificações.
@@ -14,7 +13,7 @@ public static class NotificationEndpoints
     {
         var group = app.MapGroup("/notifications")
             .WithName("Notifications")
-            .WithOpenApi();
+            .WithTags("Notifications");
 
         group.MapGet("/", GetAllNotifications)
             .WithName("GetAllNotifications")
@@ -49,41 +48,38 @@ public static class NotificationEndpoints
     }
 
     private static async Task<IResult> GetAllNotifications(
-        NotificationRepository repository,
+        INotificationRepository repository,
         CancellationToken cancellationToken)
     {
         var notifications = await repository.GetAllAsync(cancellationToken);
-        var result = notifications.Select(n => new NotificationResponse(n)).ToList();
+        var result = notifications.Select(n => NotificationResponse.FromDomain(n)).ToList();
         return Results.Ok(result);
     }
 
     private static async Task<IResult> GetNotificationById(
         Guid id,
-        NotificationRepository repository,
+        INotificationRepository repository,
         CancellationToken cancellationToken)
     {
         var notification = await repository.GetByIdAsync(id, cancellationToken);
-        if (notification is null)
-        {
-            return Results.NotFound(new { message = "Notificação não encontrada." });
-        }
-
-        return Results.Ok(new NotificationResponse(notification));
+        return notification is null
+            ? Results.NotFound(new { message = "Notificação não encontrada." })
+            : Results.Ok(NotificationResponse.FromDomain(notification));
     }
 
     private static async Task<IResult> GetNotificationsByUserId(
         Guid userId,
-        NotificationRepository repository,
+        INotificationRepository repository,
         CancellationToken cancellationToken)
     {
         var notifications = await repository.GetByUserIdAsync(userId, cancellationToken);
-        var result = notifications.Select(n => new NotificationResponse(n)).ToList();
+        var result = notifications.Select(n => NotificationResponse.FromDomain(n)).ToList();
         return Results.Ok(result);
     }
 
     private static async Task<IResult> GetNotificationsByStatus(
         string status,
-        NotificationRepository repository,
+        INotificationRepository repository,
         CancellationToken cancellationToken)
     {
         if (!Enum.TryParse<NotificationStatus>(status, ignoreCase: true, out var parsedStatus))
@@ -92,13 +88,13 @@ public static class NotificationEndpoints
         }
 
         var notifications = await repository.GetByStatusAsync(parsedStatus, cancellationToken);
-        var result = notifications.Select(n => new NotificationResponse(n)).ToList();
+        var result = notifications.Select(n => NotificationResponse.FromDomain(n)).ToList();
         return Results.Ok(result);
     }
 
     private static async Task<IResult> CreateNotification(
         CreateNotificationRequest request,
-        NotificationRepository repository,
+        INotificationRepository repository,
         IUnitOfWork unitOfWork,
         CancellationToken cancellationToken)
     {
@@ -112,13 +108,13 @@ public static class NotificationEndpoints
         await repository.AddAsync(notification, cancellationToken);
         await unitOfWork.CommitAsync(cancellationToken);
 
-        return Results.Created($"/notifications/{notification.Id}", new NotificationResponse(notification));
+        return Results.Created($"/notifications/{notification.Id}", NotificationResponse.FromDomain(notification));
     }
 
     private static async Task<IResult> UpdateNotification(
         Guid id,
         UpdateNotificationRequest request,
-        NotificationRepository repository,
+        INotificationRepository repository,
         IUnitOfWork unitOfWork,
         CancellationToken cancellationToken)
     {
@@ -147,12 +143,12 @@ public static class NotificationEndpoints
         repository.Update(notification);
         await unitOfWork.CommitAsync(cancellationToken);
 
-        return Results.Ok(new NotificationResponse(notification));
+        return Results.Ok(NotificationResponse.FromDomain(notification));
     }
 
     private static async Task<IResult> DeleteNotification(
         Guid id,
-        NotificationRepository repository,
+        INotificationRepository repository,
         IUnitOfWork unitOfWork,
         CancellationToken cancellationToken)
     {
