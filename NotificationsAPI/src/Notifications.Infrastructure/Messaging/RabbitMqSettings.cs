@@ -1,4 +1,4 @@
-namespace NotificationsAPI.Infrastructure.Messaging;
+namespace Notifications.Infrastructure.Messaging;
 
 /// <summary>
 /// Configurações de conexão com RabbitMQ.

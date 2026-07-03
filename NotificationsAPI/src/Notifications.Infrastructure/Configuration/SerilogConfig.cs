@@ -1,4 +1,4 @@
-namespace NotificationsAPI.Infrastructure.Configuration;
+namespace Notifications.Infrastructure.Configuration;
 
 using Serilog;
 using Serilog.Core;

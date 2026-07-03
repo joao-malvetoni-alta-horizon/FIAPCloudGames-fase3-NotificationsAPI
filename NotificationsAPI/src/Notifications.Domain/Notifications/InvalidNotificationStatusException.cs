@@ -1,4 +1,4 @@
-namespace NotificationsAPI.Domain.Notifications;
+namespace Notifications.Domain.Notifications;
 
 /// <summary>
 /// Exceção lançada quando uma operação é executada em um status inválido.

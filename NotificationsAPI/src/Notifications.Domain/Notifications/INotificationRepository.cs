@@ -1,4 +1,4 @@
-namespace NotificationsAPI.Domain.Notifications;
+namespace Notifications.Domain.Notifications;
 
 using Shared;
 

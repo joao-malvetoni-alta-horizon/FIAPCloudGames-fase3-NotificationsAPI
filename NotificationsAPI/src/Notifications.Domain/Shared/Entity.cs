@@ -1,4 +1,4 @@
-namespace NotificationsAPI.Domain.Shared;
+namespace Notifications.Domain.Shared;
 
 /// <summary>
 /// Classe base para todas as entidades do domínio. Fornece identidade e comparação de igualdade.

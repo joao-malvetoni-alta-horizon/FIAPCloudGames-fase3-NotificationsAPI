@@ -1,4 +1,4 @@
-namespace NotificationsAPI.Domain.Notifications;
+namespace Notifications.Domain.Notifications;
 
 /// <summary>
 /// Exceção lançada quando o número máximo de tentativas de reenvio é excedido.

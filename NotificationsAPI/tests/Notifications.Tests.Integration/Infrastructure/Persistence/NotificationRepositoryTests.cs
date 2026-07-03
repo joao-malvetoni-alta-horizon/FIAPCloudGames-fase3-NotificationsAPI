@@ -1,7 +1,7 @@
 namespace NotificationsAPI.Tests.Integration.Infrastructure.Persistence;
 
-using NotificationsAPI.Domain.Notifications;
-using NotificationsAPI.Infrastructure.Persistence;
+using Notifications.Domain.Notifications;
+using Notifications.Infrastructure.Persistence;
 using Shouldly;
 using Xunit;
 

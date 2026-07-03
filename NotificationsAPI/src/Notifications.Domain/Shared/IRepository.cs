@@ -1,4 +1,4 @@
-namespace NotificationsAPI.Domain.Shared;
+namespace Notifications.Domain.Shared;
 
 /// <summary>
 /// Interface genérica de repositório para acessar e modificar entidades.

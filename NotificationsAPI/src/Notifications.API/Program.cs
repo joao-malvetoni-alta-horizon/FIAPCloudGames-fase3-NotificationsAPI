@@ -1,7 +1,8 @@
 using Serilog;
-using NotificationsAPI.Infrastructure.DependencyInjection;
-using NotificationsAPI.Application.DependencyInjection;
+using Notifications.Infrastructure.DependencyInjection;
+using Notifications.Application.DependencyInjection;
 using Notifications.API.Middleware;
+using Notifications.API.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 

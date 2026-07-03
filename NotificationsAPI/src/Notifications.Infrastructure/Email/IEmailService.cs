@@ -1,4 +1,4 @@
-namespace NotificationsAPI.Infrastructure.Email;
+namespace Notifications.Infrastructure.Email;
 
 /// <summary>
 /// Contrato para o serviço de notificações por email.

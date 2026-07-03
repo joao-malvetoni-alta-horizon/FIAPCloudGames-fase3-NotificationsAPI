@@ -1,4 +1,4 @@
-namespace NotificationsAPI.Application.UseCases;
+namespace Notifications.Application.UseCases;
 
 /// <summary>
 /// Interface genérica para caso de uso que processa um comando e retorna um resultado.

@@ -1,7 +1,7 @@
 namespace NotificationsAPI.Tests.Integration.Infrastructure;
 
 using Microsoft.EntityFrameworkCore;
-using NotificationsAPI.Infrastructure.Persistence;
+using Notifications.Infrastructure.Persistence;
 using Testcontainers.PostgreSql;
 using Xunit;
 

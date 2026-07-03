@@ -1,4 +1,4 @@
-namespace NotificationsAPI.Domain.Shared;
+namespace Notifications.Domain.Shared;
 
 /// <summary>
 /// Exceção base para erros de nível de domínio. Representa violações de regras de negócio.

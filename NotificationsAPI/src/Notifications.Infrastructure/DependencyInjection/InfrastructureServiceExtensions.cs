@@ -1,4 +1,4 @@
-namespace NotificationsAPI.Infrastructure.DependencyInjection;
+namespace Notifications.Infrastructure.DependencyInjection;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

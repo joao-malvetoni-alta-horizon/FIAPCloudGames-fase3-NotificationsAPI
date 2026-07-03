@@ -1,7 +1,8 @@
 namespace Notifications.API.Endpoints;
 
-using NotificationsAPI.Domain.Notifications;
-using NotificationsAPI.Infrastructure.Persistence;
+using Notifications.Domain.Notifications;
+using Notifications.Domain.Shared;
+using Notifications.Infrastructure.Persistence;
 using Notifications.API.Models;
 
 /// <summary>

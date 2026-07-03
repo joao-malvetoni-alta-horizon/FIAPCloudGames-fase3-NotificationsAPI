@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace NotificationsAPI.Infrastructure.Migrations;
+namespace Notifications.Infrastructure.Migrations;
 
 /// <inheritdoc />
 public partial class CreateNotificationsTable : Migration

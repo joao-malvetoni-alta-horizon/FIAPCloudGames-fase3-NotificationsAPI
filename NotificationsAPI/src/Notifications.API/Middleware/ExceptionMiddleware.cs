@@ -1,7 +1,7 @@
 namespace Notifications.API.Middleware;
 
 using System.Text.Json;
-using NotificationsAPI.Domain.Shared;
+using Notifications.Domain.Shared;
 using Serilog;
 
 /// <summary>

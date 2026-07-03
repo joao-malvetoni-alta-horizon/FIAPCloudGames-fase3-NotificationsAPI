@@ -1,9 +1,9 @@
-namespace NotificationsAPI.Application.UseCases.Handlers;
+namespace Notifications.Application.UseCases.Handlers;
 
 using Microsoft.Extensions.Logging;
+using Notifications.Domain.Shared;
 using FiapCloudGames.Contracts.Users;
 using Domain.Notifications;
-using Domain.Shared;
 
 /// <summary>
 /// Manipulador de eventos para quando um usuário se auto-registra na plataforma.

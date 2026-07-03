@@ -2,9 +2,9 @@ namespace NotificationsTests.Application.UseCases.Handlers;
 
 using Microsoft.Extensions.Logging;
 using FiapCloudGames.Contracts.Users;
-using NotificationsAPI.Application.UseCases.Handlers;
-using NotificationsAPI.Domain.Notifications;
-using NotificationsAPI.Domain.Shared;
+using Notifications.Application.UseCases.Handlers;
+using Notifications.Domain.Notifications;
+using Notifications.Domain.Shared;
 using NSubstitute;
 using Shouldly;
 

@@ -1,4 +1,4 @@
-namespace NotificationsAPI.Domain.Shared;
+namespace Notifications.Domain.Shared;
 
 /// <summary>
 /// Interface para o padrão unit of work. Gerencia limites de transação entre repositórios.

@@ -1,6 +1,6 @@
 namespace Notifications.API.Models;
 
-using NotificationsAPI.Domain.Notifications;
+using Notifications.Domain.Notifications;
 
 /// <summary>
 /// Request para criar uma nova notificação.

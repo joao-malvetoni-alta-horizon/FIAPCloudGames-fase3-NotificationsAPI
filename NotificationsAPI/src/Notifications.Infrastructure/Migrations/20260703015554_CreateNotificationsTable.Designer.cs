@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NotificationsAPI.Infrastructure.Persistence;
+using Notifications.Infrastructure.Persistence;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace NotificationsAPI.Infrastructure.Migrations
+namespace Notifications.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20260703015554_CreateNotificationsTable")]
@@ -25,7 +25,7 @@ namespace NotificationsAPI.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("NotificationsAPI.Domain.Notifications.Notification", b =>
+            modelBuilder.Entity("Notifications.Domain.Notifications.Notification", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");

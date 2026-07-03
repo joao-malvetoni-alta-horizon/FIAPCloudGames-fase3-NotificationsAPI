@@ -1,6 +1,6 @@
 namespace NotificationsTests.Domain.Notifications;
 
-using NotificationsAPI.Domain.Notifications;
+using Notifications.Domain.Notifications;
 using Shouldly;
 
 /// <summary>

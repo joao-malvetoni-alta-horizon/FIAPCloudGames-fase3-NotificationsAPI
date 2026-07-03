@@ -1,4 +1,4 @@
-namespace NotificationsAPI.Application.DependencyInjection;
+namespace Notifications.Application.DependencyInjection;
 
 using Microsoft.Extensions.DependencyInjection;
 using UseCases.Handlers;

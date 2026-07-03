@@ -1,4 +1,4 @@
-﻿namespace NotificationsAPI.Domain;
+﻿namespace Notifications.Domain;
 
 public class Class1
 {

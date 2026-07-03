@@ -1,4 +1,4 @@
-namespace NotificationsAPI.Infrastructure.Persistence;
+namespace Notifications.Infrastructure.Persistence;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;

@@ -1,4 +1,4 @@
-namespace NotificationsAPI.Infrastructure.Email;
+namespace Notifications.Infrastructure.Email;
 
 using Microsoft.Extensions.Logging;
 

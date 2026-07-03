@@ -1,4 +1,4 @@
-namespace NotificationsAPI.Application.UseCases.Handlers;
+namespace Notifications.Application.UseCases.Handlers;
 
 /// <summary>
 /// Interface genérica para manipuladores de eventos de integração.
