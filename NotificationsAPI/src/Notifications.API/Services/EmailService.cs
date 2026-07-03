@@ -1,4 +1,4 @@
-namespace NotificationsAPI.Services;
+namespace Notifications.API.Services;
 
 public class EmailService(ILogger<EmailService> logger)
 {

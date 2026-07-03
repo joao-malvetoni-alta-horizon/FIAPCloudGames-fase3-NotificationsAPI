@@ -1,9 +1,8 @@
-namespace NotificationsAPI.Tests.Integration.Infrastructure.Persistence;
-
 using Notifications.Domain.Notifications;
 using Notifications.Infrastructure.Persistence;
 using Shouldly;
-using Xunit;
+
+namespace Notifications.Tests.Integration.Infrastructure.Persistence;
 
 /// <summary>
 /// Testes de integração para o NotificationRepository usando TestContainers.

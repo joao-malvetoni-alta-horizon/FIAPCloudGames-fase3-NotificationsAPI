@@ -1,12 +1,13 @@
-namespace NotificationsTests.Application.UseCases.Handlers;
-
-using Microsoft.Extensions.Logging;
 using FiapCloudGames.Contracts.Users;
+using Microsoft.Extensions.Logging;
 using Notifications.Application.UseCases.Handlers;
 using Notifications.Domain.Notifications;
 using Notifications.Domain.Shared;
 using NSubstitute;
 using Shouldly;
+using Xunit;
+
+namespace Notifications.Application.Tests.UseCases.Handlers;
 
 /// <summary>
 /// Testes unitários para UserRegisteredEventHandler.

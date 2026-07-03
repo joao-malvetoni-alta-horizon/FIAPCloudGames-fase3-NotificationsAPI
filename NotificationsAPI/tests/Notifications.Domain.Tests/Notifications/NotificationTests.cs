@@ -1,7 +1,8 @@
-namespace NotificationsTests.Domain.Notifications;
-
 using Notifications.Domain.Notifications;
 using Shouldly;
+using Xunit;
+
+namespace Notifications.Domain.Tests.Notifications;
 
 /// <summary>
 /// Testes unitários para o agregado Notification.

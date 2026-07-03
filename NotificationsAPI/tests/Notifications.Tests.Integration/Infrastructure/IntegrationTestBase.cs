@@ -1,9 +1,8 @@
-namespace NotificationsAPI.Tests.Integration.Infrastructure;
-
 using Microsoft.EntityFrameworkCore;
 using Notifications.Infrastructure.Persistence;
 using Testcontainers.PostgreSql;
-using Xunit;
+
+namespace Notifications.Tests.Integration.Infrastructure;
 
 /// <summary>
 /// Classe base para testes de integração com TestContainers.

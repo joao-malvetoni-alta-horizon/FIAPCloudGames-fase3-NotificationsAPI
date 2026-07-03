@@ -1,9 +1,10 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Notifications.Infrastructure.Email;
 using NSubstitute;
-using NotificationsAPI.Services;
+using Xunit;
 
-namespace NotificationsTests;
+namespace Notifications.Infrastructure.Tests;
 
 public class EmailServiceTests
 {
@@ -14,7 +15,7 @@ public class EmailServiceTests
 
         var service = new EmailService(logger);
 
-        Func<Task> act = () => service.SendWelcomeEmail("joao@email.com", "João");
+        Func<Task> act = () => service.SendWelcomeEmailAsync("joao@email.com", "João");
 
         await act.Should().NotThrowAsync();
     }
