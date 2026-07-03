@@ -52,7 +52,7 @@ public static class NotificationEndpoints
         CancellationToken cancellationToken)
     {
         var notifications = await repository.GetAllAsync(cancellationToken);
-        var result = notifications.Select(n => NotificationResponse.FromDomain(n)).ToList();
+        var result = notifications.Select(NotificationResponse.FromDomain).ToList();
         return Results.Ok(result);
     }
 
@@ -73,7 +73,7 @@ public static class NotificationEndpoints
         CancellationToken cancellationToken)
     {
         var notifications = await repository.GetByUserIdAsync(userId, cancellationToken);
-        var result = notifications.Select(n => NotificationResponse.FromDomain(n)).ToList();
+        var result = notifications.Select(NotificationResponse.FromDomain).ToList();
         return Results.Ok(result);
     }
 
@@ -88,7 +88,7 @@ public static class NotificationEndpoints
         }
 
         var notifications = await repository.GetByStatusAsync(parsedStatus, cancellationToken);
-        var result = notifications.Select(n => NotificationResponse.FromDomain(n)).ToList();
+        var result = notifications.Select(NotificationResponse.FromDomain).ToList();
         return Results.Ok(result);
     }
 
