@@ -9,7 +9,7 @@ public static class HealthCheckEndpoints
     {
         app.MapGet("/health", GetHealth)
             .WithName("HealthCheck")
-            .WithOpenApi()
+            .WithTags("Health")
             .WithDescription("Verifica o status de saúde da API");
     }
 

@@ -37,3 +37,8 @@ app.MapHealthCheck();
 app.MapNotificationEndpoints();
 
 app.Run();
+
+/// <summary>
+/// Marcador público para permitir o uso de <c>WebApplicationFactory&lt;Program&gt;</c> em testes de integração.
+/// </summary>
+public partial class Program;
