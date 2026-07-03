@@ -1,0 +1,9 @@
+{
+  "hooks": {
+    "post-commit-message-submit": "bash -c 'if ! git log -1 --format=%B | grep -qE \"^(feat|fix|docs|style|refactor|perf|test|chore|ci)(\(.+\))?:\" || git log -1 --format=%B | grep -qE \"[A-Z]{2,}\"; then echo \"❌ Erro: Commit message deve estar em português e seguir o padrão Conventional Commits (em português).\"; echo \"Exemplo: feat: implementar autenticação com JWT\"; exit 1; fi'"
+  },
+  "rememberedLLMHints": {
+    "loggingStyle": "Sempre use partial log methods com LoggerMessage attribute em vez de logger.LogInformation(), logger.LogError(), etc. Exemplo: criar métodos partial void com [LoggerMessage(...)]. Veja EmailService.cs e UserCreatedEventHandler.cs como referência.",
+    "commitLanguage": "Todas as commit messages devem ser em português brasileiro. Use padrão Conventional Commits em português."
+  }
+}

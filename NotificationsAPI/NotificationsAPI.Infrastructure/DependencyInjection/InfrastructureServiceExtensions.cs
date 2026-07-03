@@ -3,6 +3,7 @@ namespace NotificationsAPI.Infrastructure.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Domain.Notifications;
 using Domain.Shared;
 using Messaging;
 using Persistence;
@@ -24,7 +25,7 @@ public static class InfrastructureServiceExtensions
             configuration.GetSection(RabbitMqSettings.SectionName));
 
         // Registrar contexto de banco de dados
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        string? connectionString = configuration.GetConnectionString("DefaultConnection");
         services.AddDbContext<AppDbContext>(options =>
         {
             options.UseNpgsql(
@@ -33,6 +34,7 @@ public static class InfrastructureServiceExtensions
         });
 
         // Registrar Unit of Work e repositórios
+        services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
@@ -43,7 +45,7 @@ public static class InfrastructureServiceExtensions
     /// </summary>
     public static async Task MigrateAsync(this IServiceProvider services)
     {
-        using var scope = services.CreateScope();
+        using IServiceScope scope = services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         await context.Database.MigrateAsync();
     }

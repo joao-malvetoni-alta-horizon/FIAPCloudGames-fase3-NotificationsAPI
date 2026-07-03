@@ -1,22 +1,21 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NotificationsAPI.Services;
 
-namespace NotificationsTests
+namespace NotificationsTests;
+
+public class EmailServiceTests
 {
-    public class EmailServiceTests
+    [Fact]
+    public async Task Deve_Enviar_Email()
     {
-        [Fact]
-        public async Task Deve_Enviar_Email()
-        {
-            var logger = Substitute.For<ILogger<EmailService>>();
+        var logger = Substitute.For<ILogger<EmailService>>();
 
-            var service = new EmailService(logger);
+        var service = new EmailService(logger);
 
-            var act = () => service.SendWelcomeEmail("joao@email.com", "João");
+        Func<Task> act = () => service.SendWelcomeEmail("joao@email.com", "João");
 
-            await act.Should().NotThrowAsync();
-        }
+        await act.Should().NotThrowAsync();
     }
 }

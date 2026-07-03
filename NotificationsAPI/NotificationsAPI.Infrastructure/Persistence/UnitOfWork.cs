@@ -1,32 +1,13 @@
 namespace NotificationsAPI.Infrastructure.Persistence;
 
 using Domain.Shared;
-using Domain.Notifications;
 
 /// <summary>
 /// Implementação do padrão Unit of Work usando Entity Framework Core.
 /// </summary>
-public class UnitOfWork : IUnitOfWork
+public class UnitOfWork(AppDbContext context) : IUnitOfWork
 {
-    private readonly AppDbContext _context;
-    private INotificationRepository? _notificationRepository;
-
-    public UnitOfWork(AppDbContext context)
-    {
-        _context = context;
-    }
-
-    /// <summary>
-    /// Obtém ou cria o repositório de notificações.
-    /// </summary>
-    public INotificationRepository Notifications
-    {
-        get
-        {
-            _notificationRepository ??= new NotificationRepository(_context);
-            return _notificationRepository;
-        }
-    }
+    private readonly AppDbContext _context = context;
 
     /// <summary>
     /// Confirma todas as mudanças no banco de dados.
