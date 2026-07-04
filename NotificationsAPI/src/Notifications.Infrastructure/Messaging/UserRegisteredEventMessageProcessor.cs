@@ -32,7 +32,8 @@ public partial class UserRegisteredEventMessageProcessor(
         return await DispatchAsync(integrationEvent, cancellationToken);
     }
 
-    private bool TryDeserializeEvent(ReadOnlyMemory<byte> body, [NotNullWhen(true)] out UserRegisteredEvent? integrationEvent)
+    private bool TryDeserializeEvent(ReadOnlyMemory<byte> body,
+        [NotNullWhen(true)] out UserRegisteredEvent? integrationEvent)
     {
         try
         {
@@ -60,7 +61,7 @@ public partial class UserRegisteredEventMessageProcessor(
     {
         try
         {
-            using IServiceScope scope = scopeFactory.CreateScope();
+            await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
             var handler = scope.ServiceProvider.GetRequiredService<IEventHandler<UserRegisteredEvent>>();
             await handler.HandleAsync(integrationEvent, cancellationToken);
             return MessageProcessingResult.Success;
