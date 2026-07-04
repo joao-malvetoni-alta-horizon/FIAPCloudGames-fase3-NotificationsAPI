@@ -3,6 +3,8 @@ namespace Notifications.Infrastructure.Messaging;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using FiapCloudGames.Contracts.Users;
+using FiapCloudGames.RabbitMq.Consumers;
+using FiapCloudGames.RabbitMq.Processing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Application.UseCases.Handlers;
@@ -10,12 +12,13 @@ using Npgsql;
 
 /// <summary>
 /// Responsável por desserializar e despachar mensagens de <see cref="UserRegisteredEvent"/>
-/// para o respectivo handler, isolado da infraestrutura de conexão com o RabbitMQ e da
-/// resolução via injeção de dependência (delegada ao <see cref="IEventDispatcher"/>).
+/// para o respectivo handler, isolado da infraestrutura de conexão com o RabbitMQ (provida pelo
+/// pacote FiapCloudGames.RabbitMq) e da resolução via injeção de dependência (delegada ao
+/// <see cref="IEventDispatcher"/>).
 /// </summary>
 public partial class UserRegisteredEventMessageProcessor(
     IEventDispatcher dispatcher,
-    ILogger<UserRegisteredEventMessageProcessor> logger)
+    ILogger<UserRegisteredEventMessageProcessor> logger) : IMessageProcessor
 {
     /// <summary>
     /// Desserializa o corpo da mensagem e despacha para o <see cref="IEventHandler{TEvent}"/> correspondente.

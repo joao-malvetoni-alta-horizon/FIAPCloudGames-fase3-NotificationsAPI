@@ -1,5 +1,8 @@
 namespace Notifications.Infrastructure.DependencyInjection;
 
+using FiapCloudGames.Contracts.Users;
+using FiapCloudGames.RabbitMq.Consumers;
+using FiapCloudGames.RabbitMq.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,10 +25,6 @@ public static class InfrastructureServiceExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Registrar configurações do RabbitMQ
-        services.Configure<RabbitMqSettings>(
-            configuration.GetSection(RabbitMqSettings.SectionName));
-
         // Registrar contexto de banco de dados
         services.AddDbContext<AppDbContext>((serviceProvider, options) =>
         {
@@ -39,12 +38,17 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-        // Registrar serviço de email e consumidor RabbitMQ
+        // Registrar serviço de email
         services.AddSingleton<IEmailService, EmailService>();
         services.AddSingleton<IEventDispatcher, EventDispatcher>();
-        services.AddSingleton<UserRegisteredEventMessageProcessor>();
-        services.AddSingleton<RabbitMqConsumerHostedService>();
-        services.AddHostedService(sp => sp.GetRequiredService<RabbitMqConsumerHostedService>());
+
+        // Registrar infraestrutura RabbitMQ (FiapCloudGames.RabbitMq) e o consumidor de UserRegisteredEvent
+        services.AddRabbitMq(configuration);
+        services.AddRabbitMqConsumer<UserRegisteredEventMessageProcessor>(
+            new RabbitMqConsumerDefinition(
+                UserMessaging.Exchange,
+                "notifications.user-registered",
+                UserMessaging.RoutingKeys.Registered));
 
         return services;
     }

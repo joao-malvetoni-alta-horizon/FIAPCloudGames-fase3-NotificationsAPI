@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using FiapCloudGames.Contracts.Users;
+using FiapCloudGames.RabbitMq.Consumers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Notifications.Domain.Notifications;
@@ -27,7 +28,7 @@ public class UserRegisteredEventConsumerTests(MessagingApiFactory factory)
         // Força a subida do host (e, portanto, do RabbitMqConsumerHostedService) e aguarda o
         // consumidor declarar exchange/fila/binding antes de qualquer teste publicar mensagens.
         _factory.CreateClient();
-        var consumer = _factory.Services.GetRequiredService<RabbitMqConsumerHostedService>();
+        var consumer = _factory.Services.GetRequiredService<RabbitMqConsumerHostedService<UserRegisteredEventMessageProcessor>>();
         await consumer.Started.WaitAsync(TimeSpan.FromSeconds(30));
     }
 

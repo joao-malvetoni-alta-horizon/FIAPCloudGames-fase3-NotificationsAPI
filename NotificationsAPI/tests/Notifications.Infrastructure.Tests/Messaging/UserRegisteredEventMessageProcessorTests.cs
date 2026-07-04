@@ -3,6 +3,7 @@ namespace Notifications.Infrastructure.Tests.Messaging;
 using System.Text;
 using System.Text.Json;
 using FiapCloudGames.Contracts.Users;
+using FiapCloudGames.RabbitMq.Consumers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Notifications.Application.UseCases.Handlers;
