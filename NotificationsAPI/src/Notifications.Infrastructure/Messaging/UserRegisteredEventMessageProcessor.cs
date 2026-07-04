@@ -1,11 +1,12 @@
 namespace Notifications.Infrastructure.Messaging;
 
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using FiapCloudGames.Contracts.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Notifications.Application.UseCases.Handlers;
+using Application.UseCases.Handlers;
 using Npgsql;
 
 /// <summary>
@@ -19,9 +20,20 @@ public partial class UserRegisteredEventMessageProcessor(
     /// <summary>
     /// Desserializa o corpo da mensagem e despacha para o <see cref="IEventHandler{TEvent}"/> correspondente.
     /// </summary>
-    public async Task<MessageProcessingResult> ProcessAsync(ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
+    public async Task<MessageProcessingResult> ProcessAsync(
+        ReadOnlyMemory<byte> body,
+        CancellationToken cancellationToken)
     {
-        UserRegisteredEvent? integrationEvent;
+        if (!TryDeserializeEvent(body, out UserRegisteredEvent? integrationEvent))
+        {
+            return MessageProcessingResult.PoisonMessage;
+        }
+
+        return await DispatchAsync(integrationEvent, cancellationToken);
+    }
+
+    private bool TryDeserializeEvent(ReadOnlyMemory<byte> body, [NotNullWhen(true)] out UserRegisteredEvent? integrationEvent)
+    {
         try
         {
             integrationEvent = JsonSerializer.Deserialize<UserRegisteredEvent>(body.Span);
@@ -29,15 +41,23 @@ public partial class UserRegisteredEventMessageProcessor(
         catch (JsonException ex)
         {
             LogMalformedMessage(ex);
-            return MessageProcessingResult.PoisonMessage;
+            integrationEvent = null;
+            return false;
         }
 
         if (integrationEvent is null)
         {
             LogEmptyMessage();
-            return MessageProcessingResult.PoisonMessage;
+            return false;
         }
 
+        return true;
+    }
+
+    private async Task<MessageProcessingResult> DispatchAsync(
+        UserRegisteredEvent integrationEvent,
+        CancellationToken cancellationToken)
+    {
         try
         {
             using IServiceScope scope = scopeFactory.CreateScope();
