@@ -4,7 +4,6 @@ using System.Text;
 using System.Text.Json;
 using FiapCloudGames.Contracts.Users;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Notifications.Application.UseCases.Handlers;
 using Notifications.Infrastructure.Messaging;
@@ -15,12 +14,11 @@ using Xunit;
 
 /// <summary>
 /// Testes unitários para UserRegisteredEventMessageProcessor, isolando a lógica de
-/// desserialização/despacho da infraestrutura de conexão com o RabbitMQ.
+/// desserialização/despacho da resolução de handlers via <see cref="IEventDispatcher"/>.
 /// </summary>
 public class UserRegisteredEventMessageProcessorTests
 {
-    private readonly IEventHandler<UserRegisteredEvent> _eventHandler = Substitute.For<IEventHandler<UserRegisteredEvent>>();
-    private readonly IServiceScopeFactory _scopeFactory = Substitute.For<IServiceScopeFactory>();
+    private readonly IEventDispatcher _dispatcher = Substitute.For<IEventDispatcher>();
 
     private readonly ILogger<UserRegisteredEventMessageProcessor>
         _logger = Substitute.For<ILogger<UserRegisteredEventMessageProcessor>>();
@@ -29,15 +27,7 @@ public class UserRegisteredEventMessageProcessorTests
 
     public UserRegisteredEventMessageProcessorTests()
     {
-        var serviceProvider = Substitute.For<IServiceProvider>();
-        serviceProvider.GetService(typeof(IEventHandler<UserRegisteredEvent>)).Returns(_eventHandler);
-
-        var scope = Substitute.For<IServiceScope>();
-        scope.ServiceProvider.Returns(serviceProvider);
-
-        _scopeFactory.CreateScope().Returns(scope);
-
-        _processor = new UserRegisteredEventMessageProcessor(_scopeFactory, _logger);
+        _processor = new UserRegisteredEventMessageProcessor(_dispatcher, _logger);
     }
 
     [Fact]
@@ -52,13 +42,13 @@ public class UserRegisteredEventMessageProcessorTests
 
         // Assert
         result.ShouldBe(MessageProcessingResult.Success);
-        await _eventHandler.Received(1).HandleAsync(
+        await _dispatcher.Received(1).DispatchAsync(
             Arg.Is<UserRegisteredEvent>(e => e.UserId == integrationEvent.UserId),
             Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task ProcessAsync_WithMalformedJson_ReturnsPoisonMessageAndDoesNotCallHandler()
+    public async Task ProcessAsync_WithMalformedJson_ReturnsPoisonMessageAndDoesNotDispatch()
     {
         // Arrange
         byte[] body = Encoding.UTF8.GetBytes("{ isso não é json válido");
@@ -68,17 +58,17 @@ public class UserRegisteredEventMessageProcessorTests
 
         // Assert
         result.ShouldBe(MessageProcessingResult.PoisonMessage);
-        await _eventHandler.DidNotReceive().HandleAsync(Arg.Any<UserRegisteredEvent>(), Arg.Any<CancellationToken>());
+        await _dispatcher.DidNotReceive().DispatchAsync(Arg.Any<UserRegisteredEvent>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task ProcessAsync_WhenHandlerThrows_ReturnsTransientFailure()
+    public async Task ProcessAsync_WhenDispatcherThrows_ReturnsTransientFailure()
     {
         // Arrange
         var integrationEvent = new UserRegisteredEvent(Guid.NewGuid(), "Jane Doe", "jane@example.com");
         byte[] body = JsonSerializer.SerializeToUtf8Bytes(integrationEvent);
 
-        _eventHandler.HandleAsync(Arg.Any<UserRegisteredEvent>(), Arg.Any<CancellationToken>())
+        _dispatcher.DispatchAsync(Arg.Any<UserRegisteredEvent>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromException(new TimeoutException("Connection timeout")));
 
         // Act
@@ -96,7 +86,7 @@ public class UserRegisteredEventMessageProcessorTests
         byte[] body = JsonSerializer.SerializeToUtf8Bytes(integrationEvent);
 
         var uniqueViolation = new PostgresException("duplicate key value violates unique constraint", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation);
-        _eventHandler.HandleAsync(Arg.Any<UserRegisteredEvent>(), Arg.Any<CancellationToken>())
+        _dispatcher.DispatchAsync(Arg.Any<UserRegisteredEvent>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromException(new DbUpdateException("duplicate", uniqueViolation)));
 
         // Act

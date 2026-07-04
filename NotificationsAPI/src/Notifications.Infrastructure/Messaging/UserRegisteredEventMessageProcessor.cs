@@ -4,17 +4,17 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using FiapCloudGames.Contracts.Users;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Application.UseCases.Handlers;
 using Npgsql;
 
 /// <summary>
 /// Responsável por desserializar e despachar mensagens de <see cref="UserRegisteredEvent"/>
-/// para o respectivo handler, isolado da infraestrutura de conexão com o RabbitMQ.
+/// para o respectivo handler, isolado da infraestrutura de conexão com o RabbitMQ e da
+/// resolução via injeção de dependência (delegada ao <see cref="IEventDispatcher"/>).
 /// </summary>
 public partial class UserRegisteredEventMessageProcessor(
-    IServiceScopeFactory scopeFactory,
+    IEventDispatcher dispatcher,
     ILogger<UserRegisteredEventMessageProcessor> logger)
 {
     /// <summary>
@@ -32,8 +32,7 @@ public partial class UserRegisteredEventMessageProcessor(
         return await DispatchAsync(integrationEvent, cancellationToken);
     }
 
-    private bool TryDeserializeEvent(ReadOnlyMemory<byte> body,
-        [NotNullWhen(true)] out UserRegisteredEvent? integrationEvent)
+    private bool TryDeserializeEvent(ReadOnlyMemory<byte> body, [NotNullWhen(true)] out UserRegisteredEvent? integrationEvent)
     {
         try
         {
@@ -61,9 +60,7 @@ public partial class UserRegisteredEventMessageProcessor(
     {
         try
         {
-            await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
-            var handler = scope.ServiceProvider.GetRequiredService<IEventHandler<UserRegisteredEvent>>();
-            await handler.HandleAsync(integrationEvent, cancellationToken);
+            await dispatcher.DispatchAsync(integrationEvent, cancellationToken);
             return MessageProcessingResult.Success;
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })

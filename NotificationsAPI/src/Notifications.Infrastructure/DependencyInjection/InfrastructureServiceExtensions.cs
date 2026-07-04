@@ -3,6 +3,7 @@ namespace Notifications.Infrastructure.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Application.UseCases.Handlers;
 using Domain.Notifications;
 using Domain.Shared;
 using Email;
@@ -40,6 +41,7 @@ public static class InfrastructureServiceExtensions
 
         // Registrar serviço de email e consumidor RabbitMQ
         services.AddSingleton<IEmailService, EmailService>();
+        services.AddSingleton<IEventDispatcher, EventDispatcher>();
         services.AddSingleton<UserRegisteredEventMessageProcessor>();
         services.AddSingleton<RabbitMqConsumerHostedService>();
         services.AddHostedService(sp => sp.GetRequiredService<RabbitMqConsumerHostedService>());
