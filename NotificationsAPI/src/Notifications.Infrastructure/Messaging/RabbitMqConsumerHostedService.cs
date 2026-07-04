@@ -19,12 +19,12 @@ public partial class RabbitMqConsumerHostedService(
     private const string QueueName = "notifications.user-registered";
 
     private readonly RabbitMqSettings _settings = options.Value;
-    private readonly TaskCompletionSource _readySource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly TaskCompletionSource _consumerStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     /// <summary>
     /// Concluída quando a exchange, a fila e o binding já foram declarados e o consumidor está pronto para receber mensagens.
     /// </summary>
-    public Task Started => _readySource.Task;
+    public Task Started => _consumerStarted.Task;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -32,7 +32,7 @@ public partial class RabbitMqConsumerHostedService(
         {
             try
             {
-                await ConnectAndConsumeAsync(stoppingToken);
+                await RunConsumerAsync(stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -54,56 +54,47 @@ public partial class RabbitMqConsumerHostedService(
         }
     }
 
-    private async Task ConnectAndConsumeAsync(CancellationToken stoppingToken)
+    private async Task RunConsumerAsync(CancellationToken stoppingToken)
     {
         await using IConnection connection = await ConnectWithRetryAsync(stoppingToken);
         await using IChannel channel = await connection.CreateChannelAsync(cancellationToken: stoppingToken);
 
+        await DeclareMessagingInfrastructureAsync(channel, stoppingToken);
+        await StartConsumerAsync(channel, stoppingToken);
+
+        LogConsumerReady(QueueName);
+        _consumerStarted.TrySetResult();
+
+        await WaitUntilDisconnectedAsync(connection, stoppingToken);
+    }
+
+    private static async Task DeclareMessagingInfrastructureAsync(IChannel channel, CancellationToken cancellationToken)
+    {
         await channel.ExchangeDeclareAsync(
             UserMessaging.Exchange,
             ExchangeType.Topic,
             durable: true,
             autoDelete: false,
-            cancellationToken: stoppingToken);
+            cancellationToken: cancellationToken);
 
         await channel.QueueDeclareAsync(
             QueueName,
             durable: true,
             exclusive: false,
             autoDelete: false,
-            cancellationToken: stoppingToken);
+            cancellationToken: cancellationToken);
 
         await channel.QueueBindAsync(
             QueueName,
             UserMessaging.Exchange,
             UserMessaging.RoutingKeys.Registered,
-            cancellationToken: stoppingToken);
+            cancellationToken: cancellationToken);
+    }
 
+    private async Task StartConsumerAsync(IChannel channel, CancellationToken cancellationToken)
+    {
         var consumer = new AsyncEventingBasicConsumer(channel);
-        consumer.ReceivedAsync += async (_, deliverEventArgs) =>
-        {
-            try
-            {
-                MessageProcessingResult result = await processor.ProcessAsync(deliverEventArgs.Body, stoppingToken);
-
-                switch (result)
-                {
-                    case MessageProcessingResult.Success:
-                        await channel.BasicAckAsync(deliverEventArgs.DeliveryTag, multiple: false, stoppingToken);
-                        break;
-                    case MessageProcessingResult.PoisonMessage:
-                        await channel.BasicNackAsync(deliverEventArgs.DeliveryTag, multiple: false, requeue: false, stoppingToken);
-                        break;
-                    case MessageProcessingResult.TransientFailure:
-                        await channel.BasicNackAsync(deliverEventArgs.DeliveryTag, multiple: false, requeue: true, stoppingToken);
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                LogMessageHandlingFailed(ex);
-            }
-        };
+        consumer.ReceivedAsync += (_, args) => HandleMessageAsync(channel, args, cancellationToken);
 
         await channel.BasicConsumeAsync(
             QueueName,
@@ -113,11 +104,42 @@ public partial class RabbitMqConsumerHostedService(
             exclusive: false,
             arguments: null,
             consumer,
-            cancellationToken: stoppingToken);
+            cancellationToken: cancellationToken);
+    }
 
-        LogConsumerReady(QueueName);
-        _readySource.TrySetResult();
+    private async Task HandleMessageAsync(IChannel channel, BasicDeliverEventArgs args, CancellationToken cancellationToken)
+    {
+        try
+        {
+            MessageProcessingResult result = await processor.ProcessAsync(args.Body, cancellationToken);
+            await AcknowledgeMessageAsync(channel, args.DeliveryTag, result, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            LogMessageHandlingFailed(ex);
+        }
+    }
 
+    private static ValueTask AcknowledgeMessageAsync(
+        IChannel channel,
+        ulong deliveryTag,
+        MessageProcessingResult result,
+        CancellationToken cancellationToken)
+    {
+        return result switch
+        {
+            MessageProcessingResult.Success =>
+                channel.BasicAckAsync(deliveryTag, multiple: false, cancellationToken),
+            MessageProcessingResult.PoisonMessage =>
+                channel.BasicNackAsync(deliveryTag, multiple: false, requeue: false, cancellationToken),
+            MessageProcessingResult.TransientFailure =>
+                channel.BasicNackAsync(deliveryTag, multiple: false, requeue: true, cancellationToken),
+            _ => throw new ArgumentOutOfRangeException(nameof(result))
+        };
+    }
+
+    private static async Task WaitUntilDisconnectedAsync(IConnection connection, CancellationToken stoppingToken)
+    {
         var connectionClosed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         connection.ConnectionShutdownAsync += (_, _) =>
         {
@@ -125,7 +147,7 @@ public partial class RabbitMqConsumerHostedService(
             return Task.CompletedTask;
         };
 
-        using CancellationTokenRegistration registration = stoppingToken.Register(() => connectionClosed.TrySetResult());
+        await using CancellationTokenRegistration registration = stoppingToken.Register(() => connectionClosed.TrySetResult());
         await connectionClosed.Task;
 
         stoppingToken.ThrowIfCancellationRequested();
@@ -133,14 +155,7 @@ public partial class RabbitMqConsumerHostedService(
 
     private async Task<IConnection> ConnectWithRetryAsync(CancellationToken stoppingToken)
     {
-        var factory = new ConnectionFactory
-        {
-            HostName = _settings.Host,
-            Port = _settings.Port,
-            UserName = _settings.Username,
-            Password = _settings.Password,
-            VirtualHost = _settings.VirtualHost
-        };
+        var factory = CreateConnectionFactory();
 
         for (int attempt = 1; ; attempt++)
         {
@@ -154,6 +169,18 @@ public partial class RabbitMqConsumerHostedService(
                 await Task.Delay(_settings.ConnectionRetryDelayMs, stoppingToken);
             }
         }
+    }
+
+    private ConnectionFactory CreateConnectionFactory()
+    {
+        return new ConnectionFactory
+        {
+            HostName = _settings.Host,
+            Port = _settings.Port,
+            UserName = _settings.Username,
+            Password = _settings.Password,
+            VirtualHost = _settings.VirtualHost
+        };
     }
 
     [LoggerMessage(
