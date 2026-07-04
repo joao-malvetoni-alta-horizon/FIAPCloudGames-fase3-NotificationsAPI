@@ -1,5 +1,6 @@
 namespace Notifications.Infrastructure.Email;
 
+using Domain.Notifications;
 using Microsoft.Extensions.Logging;
 
 /// <summary>

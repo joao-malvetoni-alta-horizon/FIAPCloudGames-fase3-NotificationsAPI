@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Domain.Notifications;
 using Domain.Shared;
+using Email;
 using Messaging;
 using Persistence;
 
@@ -25,17 +26,23 @@ public static class InfrastructureServiceExtensions
             configuration.GetSection(RabbitMqSettings.SectionName));
 
         // Registrar contexto de banco de dados
-        string? connectionString = configuration.GetConnectionString("DefaultConnection");
-        services.AddDbContext<AppDbContext>(options =>
+        services.AddDbContext<AppDbContext>((serviceProvider, options) =>
         {
+            var currentConfiguration = serviceProvider.GetRequiredService<IConfiguration>();
             options.UseNpgsql(
-                connectionString,
+                currentConfiguration.GetConnectionString("DefaultConnection"),
                 npgsqlOptions => npgsqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName));
         });
 
         // Registrar Unit of Work e repositórios
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        // Registrar serviço de email e consumidor RabbitMQ
+        services.AddSingleton<IEmailService, EmailService>();
+        services.AddSingleton<UserRegisteredEventMessageProcessor>();
+        services.AddSingleton<RabbitMqConsumerHostedService>();
+        services.AddHostedService(sp => sp.GetRequiredService<RabbitMqConsumerHostedService>());
 
         return services;
     }
