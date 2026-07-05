@@ -1,10 +1,15 @@
 namespace Notifications.Infrastructure.DependencyInjection;
 
+using FiapCloudGames.Contracts.Users;
+using FiapCloudGames.RabbitMq.Consumers;
+using FiapCloudGames.RabbitMq.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Application.UseCases.Handlers;
 using Domain.Notifications;
 using Domain.Shared;
+using Email;
 using Messaging;
 using Persistence;
 
@@ -20,22 +25,30 @@ public static class InfrastructureServiceExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Registrar configurações do RabbitMQ
-        services.Configure<RabbitMqSettings>(
-            configuration.GetSection(RabbitMqSettings.SectionName));
-
         // Registrar contexto de banco de dados
-        string? connectionString = configuration.GetConnectionString("DefaultConnection");
-        services.AddDbContext<AppDbContext>(options =>
+        services.AddDbContext<AppDbContext>((serviceProvider, options) =>
         {
+            var currentConfiguration = serviceProvider.GetRequiredService<IConfiguration>();
             options.UseNpgsql(
-                connectionString,
+                currentConfiguration.GetConnectionString("DefaultConnection"),
                 npgsqlOptions => npgsqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName));
         });
 
         // Registrar Unit of Work e repositórios
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        // Registrar serviço de email
+        services.AddSingleton<IEmailService, EmailService>();
+        services.AddSingleton<IEventDispatcher, EventDispatcher>();
+
+        // Registrar infraestrutura RabbitMQ (FiapCloudGames.RabbitMq) e o consumidor de UserRegisteredEvent
+        services.AddRabbitMq(configuration);
+        services.AddRabbitMqConsumer<UserRegisteredEventMessageProcessor>(
+            new RabbitMqConsumerDefinition(
+                UserMessaging.Exchange,
+                "notifications.user-registered",
+                UserMessaging.RoutingKeys.Registered));
 
         return services;
     }

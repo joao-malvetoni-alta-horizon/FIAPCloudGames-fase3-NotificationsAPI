@@ -7,11 +7,12 @@ using Domain.Notifications;
 
 /// <summary>
 /// Manipulador de eventos para quando um usuário se auto-registra na plataforma.
-/// Cria uma notificação de boas-vindas para o novo usuário.
+/// Cria uma notificação de boas-vindas para o novo usuário e envia o email correspondente.
 /// </summary>
 public partial class UserRegisteredEventHandler(
     INotificationRepository notificationRepository,
     IUnitOfWork unitOfWork,
+    IEmailService emailService,
     ILogger<UserRegisteredEventHandler> logger) : IEventHandler<UserRegisteredEvent>
 {
     public async Task HandleAsync(UserRegisteredEvent integrationEvent, CancellationToken cancellationToken = default)
@@ -31,6 +32,8 @@ public partial class UserRegisteredEventHandler(
             await unitOfWork.CommitAsync(cancellationToken);
 
             LogWelcomeNotificationCreated(integrationEvent.UserId);
+
+            await emailService.SendWelcomeEmailAsync(integrationEvent.Email, integrationEvent.Name, cancellationToken);
         }
         catch (Exception ex)
         {

@@ -20,11 +20,13 @@ public class UserRegisteredEventHandlerTests
     private readonly ILogger<UserRegisteredEventHandler>
         _logger = Substitute.For<ILogger<UserRegisteredEventHandler>>();
 
+    private readonly IEmailService _emailService = Substitute.For<IEmailService>();
+
     private readonly UserRegisteredEventHandler _handler;
 
     public UserRegisteredEventHandlerTests()
     {
-        _handler = new UserRegisteredEventHandler(_notificationRepository, _unitOfWork, _logger);
+        _handler = new UserRegisteredEventHandler(_notificationRepository, _unitOfWork, _emailService, _logger);
     }
 
     [Fact]
@@ -142,6 +144,20 @@ public class UserRegisteredEventHandlerTests
         await _notificationRepository.Received(2).AddAsync(
             Arg.Is<Notification>(n => n.EventId == eventId),
             Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithValidEvent_SendsWelcomeEmail()
+    {
+        // Arrange
+        var integrationEvent = new UserRegisteredEvent(Guid.NewGuid(), "Jane Doe", "jane@example.com");
+
+        // Act
+        await _handler.HandleAsync(integrationEvent);
+
+        // Assert
+        await _emailService.Received(1)
+            .SendWelcomeEmailAsync("jane@example.com", "Jane Doe", Arg.Any<CancellationToken>());
     }
 
     [Fact]
