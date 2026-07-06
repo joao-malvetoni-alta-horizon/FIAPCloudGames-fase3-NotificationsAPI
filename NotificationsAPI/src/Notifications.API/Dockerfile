@@ -4,9 +4,9 @@ WORKDIR /src
 
 COPY . .
 
-RUN dotnet restore
+RUN dotnet restore src/Notifications.API/Notifications.API.csproj
 
-RUN dotnet publish -c Release -o /app/publish
+RUN dotnet publish src/Notifications.API/Notifications.API.csproj -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-preview
 
@@ -14,4 +14,4 @@ WORKDIR /app
 
 COPY --from=build /app/publish .
 
-ENTRYPOINT ["dotnet", "NotificationsAPI.dll"]
+ENTRYPOINT ["dotnet", "Notifications.API.dll"]
