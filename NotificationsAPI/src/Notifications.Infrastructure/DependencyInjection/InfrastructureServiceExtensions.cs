@@ -1,5 +1,6 @@
 namespace Notifications.Infrastructure.DependencyInjection;
 
+using FiapCloudGames.Contracts.Payments;
 using FiapCloudGames.Contracts.Users;
 using FiapCloudGames.RabbitMq.Consumers;
 using FiapCloudGames.RabbitMq.DependencyInjection;
@@ -42,13 +43,18 @@ public static class InfrastructureServiceExtensions
         services.AddSingleton<IEmailService, EmailService>();
         services.AddSingleton<IEventDispatcher, EventDispatcher>();
 
-        // Registrar infraestrutura RabbitMQ (FiapCloudGames.RabbitMq) e o consumidor de UserRegisteredEvent
+        // Registrar infraestrutura RabbitMQ (FiapCloudGames.RabbitMq) e os consumidores de eventos
         services.AddRabbitMq(configuration);
         services.AddRabbitMqConsumer<UserRegisteredEventMessageProcessor>(
             new RabbitMqConsumerDefinition(
                 UserMessaging.Exchange,
                 "notifications.user-registered",
                 UserMessaging.RoutingKeys.Registered));
+        services.AddRabbitMqConsumer<PaymentProcessedEventMessageProcessor>(
+            new RabbitMqConsumerDefinition(
+                PaymentsMessaging.Exchange,
+                "notifications.payment-processed",
+                PaymentsMessaging.RoutingKeys.Status));
 
         return services;
     }
