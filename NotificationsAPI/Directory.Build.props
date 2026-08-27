@@ -1,0 +1,40 @@
+<Project>
+    <PropertyGroup>
+        <!-- SDK -->
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+
+        <!-- Language -->
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <!-- Metadata -->
+        <Company>FIAP Cloud Games</Company>
+        <Product>NotificationsAPI</Product>
+        <Version>1.0.0</Version>
+        <Authors>Pedro Delfino</Authors>
+
+        <!-- Analyzers -->
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <AnalysisLevel>latest</AnalysisLevel>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+        <!-- Documentation -->
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+        <!-- Build -->
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+
+        <!-- Warnings -->
+        <NoWarn>$(NoWarn);CS1591;NU1603</NoWarn>
+
+        <!-- Repository -->
+        <RepositoryUrl>https://github.com/joao-malvetoni-alta-horizon/FIAPCloudGames-fase2-NotificationsAPI</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <GlobalPackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556"/>
+    </ItemGroup>
+</Project>

@@ -1,0 +1,11 @@
+<Solution>
+  <Project Path="src/Notifications.API/Notifications.API.csproj" />
+  <Project Path="src/Notifications.Domain/Notifications.Domain.csproj" />
+  <Project Path="src/Notifications.Application/Notifications.Application.csproj" />
+  <Project Path="src/Notifications.Infrastructure/Notifications.Infrastructure.csproj" />
+  <Project Path="tests/Notifications.API.Tests/Notifications.API.Tests.csproj" />
+  <Project Path="tests/Notifications.Domain.Tests/Notifications.Domain.Tests.csproj" />
+  <Project Path="tests/Notifications.Application.Tests/Notifications.Application.Tests.csproj" />
+  <Project Path="tests/Notifications.Infrastructure.Tests/Notifications.Infrastructure.Tests.csproj" />
+  <Project Path="tests/Notifications.Tests.Integration/Notifications.Tests.Integration.csproj" />
+</Solution>

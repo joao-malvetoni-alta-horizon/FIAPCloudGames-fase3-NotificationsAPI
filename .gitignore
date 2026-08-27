@@ -1,0 +1,10 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/NotificationsAPI/.vs
+/NotificationsAPI/NotificationsAPI/bin/Debug/net10.0
+/NotificationsAPI/NotificationsAPI/obj
+/NotificationsAPI/NotificationsTests/bin/Debug/net10.0
+/NotificationsAPI/NotificationsTests/obj
