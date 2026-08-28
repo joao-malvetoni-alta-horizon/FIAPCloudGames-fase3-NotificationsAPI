@@ -18,17 +18,16 @@ namespace Notifications.Tests.Integration.Messaging;
 /// RabbitMQ (simulando o que o UsersAPI faz em produção) e valida que o NotificationsAPI consome a
 /// mensagem, persiste a notificação e aciona o envio do email de boas-vindas.
 /// </summary>
-public class UserRegisteredEventConsumerTests(MessagingApiFactory factory)
-    : IClassFixture<MessagingApiFactory>, IAsyncLifetime
+public class UserRegisteredEventConsumerTests(MessagingHostFixture fixture)
+    : IClassFixture<MessagingHostFixture>, IAsyncLifetime
 {
-    private readonly MessagingApiFactory _factory = factory;
+    private readonly MessagingHostFixture _fixture = fixture;
 
     public async Task InitializeAsync()
     {
-        // Força a subida do host (e, portanto, do RabbitMqConsumerHostedService) e aguarda o
-        // consumidor declarar exchange/fila/binding antes de qualquer teste publicar mensagens.
-        _factory.CreateClient();
-        var consumer = _factory.Services.GetRequiredService<RabbitMqConsumerHostedService<UserRegisteredEventMessageProcessor>>();
+        // O host já subiu em MessagingHostFixture.InitializeAsync; aqui só aguardamos o consumidor
+        // declarar exchange/fila/binding antes de qualquer teste publicar mensagens.
+        var consumer = _fixture.Services.GetRequiredService<RabbitMqConsumerHostedService<UserRegisteredEventMessageProcessor>>();
         await consumer.Started.WaitAsync(TimeSpan.FromSeconds(30));
     }
 
@@ -57,7 +56,7 @@ public class UserRegisteredEventConsumerTests(MessagingApiFactory factory)
         notification.Type.ShouldBe(NotificationType.WelcomeEmail);
         notification.Status.ShouldBe(NotificationStatus.Pending);
 
-        await _factory.EmailServiceSubstitute.Received(1)
+        await _fixture.EmailServiceSubstitute.Received(1)
             .SendWelcomeEmailAsync(integrationEvent.Email, integrationEvent.Name, Arg.Any<CancellationToken>());
     }
 
@@ -115,7 +114,7 @@ public class UserRegisteredEventConsumerTests(MessagingApiFactory factory)
         DateTime deadline = DateTime.UtcNow + timeout;
         while (DateTime.UtcNow < deadline)
         {
-            using IServiceScope scope = _factory.Services.CreateScope();
+            using IServiceScope scope = _fixture.Services.CreateScope();
             var repository = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
             Notification? notification = await repository.GetByEventIdAsync(eventId);
             if (notification is not null)
@@ -131,7 +130,7 @@ public class UserRegisteredEventConsumerTests(MessagingApiFactory factory)
 
     private async Task<int> CountNotificationsByEventIdAsync(Guid eventId)
     {
-        using IServiceScope scope = _factory.Services.CreateScope();
+        using IServiceScope scope = _fixture.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         return await context.Notifications.CountAsync(n => n.EventId == eventId);
     }
@@ -145,8 +144,8 @@ public class UserRegisteredEventConsumerTests(MessagingApiFactory factory)
     {
         var connectionFactory = new ConnectionFactory
         {
-            HostName = _factory.RabbitMqContainer.Hostname,
-            Port = _factory.RabbitMqContainer.GetMappedPublicPort(5672),
+            HostName = _fixture.RabbitMqContainer.Hostname,
+            Port = _fixture.RabbitMqContainer.GetMappedPublicPort(5672),
             UserName = "guest",
             Password = "guest"
         };
