@@ -4,11 +4,10 @@ using System.Text;
 using System.Text.Json;
 using FiapCloudGames.Contracts.Payments;
 using FiapCloudGames.RabbitMq.Consumers;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Notifications.Application.UseCases.Handlers;
+using Notifications.Domain.Shared;
 using Notifications.Infrastructure.Messaging;
-using Npgsql;
 using NSubstitute;
 using Shouldly;
 using Xunit;
@@ -82,13 +81,15 @@ public class PaymentProcessedEventMessageProcessorTests
     [Fact]
     public async Task ProcessAsync_WhenEventIdAlreadyProcessed_ReturnsPoisonMessage()
     {
-        // Arrange - reentrega do mesmo EventId viola a constraint única de Notification.EventId
+        // Arrange - reentrega do mesmo EventId: a camada de persistência sinaliza o conflito
+        // com DuplicateEventException, sem expor o erro específico do PostgreSQL.
         var integrationEvent = new PaymentProcessedEvent(Guid.NewGuid(), Guid.NewGuid(), PaymentStatus.Approved);
         byte[] body = JsonSerializer.SerializeToUtf8Bytes(integrationEvent);
 
-        var uniqueViolation = new PostgresException("duplicate key value violates unique constraint", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation);
         _dispatcher.DispatchAsync(Arg.Any<PaymentProcessedEvent>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromException(new DbUpdateException("duplicate", uniqueViolation)));
+            .Returns(Task.FromException(new DuplicateEventException(
+                "O evento de integração já havia sido processado (violação de unicidade de EventId).",
+                new InvalidOperationException("unique constraint"))));
 
         // Act
         MessageProcessingResult result = await _processor.ProcessAsync(body, CancellationToken.None);

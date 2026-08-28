@@ -5,10 +5,9 @@ using System.Text.Json;
 using FiapCloudGames.Contracts.Users;
 using FiapCloudGames.RabbitMq.Consumers;
 using FiapCloudGames.RabbitMq.Processing;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Application.UseCases.Handlers;
-using Npgsql;
+using Domain.Shared;
 
 /// <summary>
 /// Responsável por desserializar e despachar mensagens de <see cref="UserRegisteredEvent"/>
@@ -66,9 +65,9 @@ public partial class UserRegisteredEventMessageProcessor(
             await dispatcher.DispatchAsync(integrationEvent, cancellationToken);
             return MessageProcessingResult.Success;
         }
-        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+        catch (DuplicateEventException)
         {
-            // EventId já processado anteriormente (constraint única): reentrega do broker, não é uma falha real.
+            // EventId já processado anteriormente: reentrega do broker, não é uma falha real.
             LogDuplicateEvent(integrationEvent.EventId, integrationEvent.UserId);
             return MessageProcessingResult.PoisonMessage;
         }
