@@ -104,7 +104,7 @@ public async Task HandleAsync(UserCreatedEvent @event, CancellationToken cancell
 
 ### 🏗️ Arquitetura do Projeto
 
-**Clean Architecture com 4 Camadas:**
+**Clean Architecture com 3 Camadas:**
 
 ```
 NotificationsAPI/
@@ -114,14 +114,15 @@ NotificationsAPI/
 ├── NotificationsAPI.Application/     ← Casos de uso
 │   ├── UseCases/
 │   └── DependencyInjection/
-├── NotificationsAPI.Infrastructure/  ← Persistência, logging, mensageria
-│   ├── Persistence/                  ← EF Core, Repositories
-│   ├── Configuration/                ← Serilog setup
-│   ├── Email/                        ← Serviços de email
-│   └── Messaging/                    ← RabbitMQ setup
-└── NotificationsAPI/                 ← API endpoints
-    └── Program.cs                    ← Composição de DI
+└── NotificationsAPI.Infrastructure/  ← Persistência, logging, mensageria
+    ├── Persistence/                  ← EF Core, Repositories
+    ├── Configuration/                ← Serilog setup
+    ├── Email/                        ← Serviços de email
+    └── Messaging/                    ← RabbitMQ setup
 ```
+
+> A camada `NotificationsAPI/` (API HTTP) foi removida na migração para serverless —
+> ver `SDD.md`, DD-02.
 
 ---
 

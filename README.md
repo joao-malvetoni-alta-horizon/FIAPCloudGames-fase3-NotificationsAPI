@@ -13,15 +13,18 @@ O envio simulado está implementado em `src/Notifications.Infrastructure/Email/E
 
 ## Arquitetura
 
-Clean Architecture em 4 camadas:
+Clean Architecture em 3 camadas:
 
 ```
 NotificationsAPI/
 ├── src/Notifications.Domain/          Regras de negócio (aggregate Notification)
 ├── src/Notifications.Application/     Casos de uso e handlers de eventos
-├── src/Notifications.Infrastructure/  Persistência (EF Core + PostgreSQL), email simulado e mensageria (RabbitMQ)
-└── src/Notifications.API/             Endpoints da API e composição de DI
+└── src/Notifications.Infrastructure/  Persistência (EF Core + PostgreSQL), email simulado e mensageria (RabbitMQ)
 ```
+
+> **Migração em andamento.** A API HTTP foi removida (SDD, DD-02). O host novo — a função
+> Lambda acionada por SQS — chega no PR de `Notifications.Functions`. Até lá o código compila
+> e os testes passam, mas não há processo executável. Ver [`SDD.md`](SDD.md).
 
 Mais detalhes em [`NotificationsAPI/CLAUDE.md`](NotificationsAPI/CLAUDE.md).
 
@@ -53,9 +56,6 @@ cd NotificationsAPI
 
 # Build
 dotnet build
-
-# Executar a API
-dotnet run --project src/Notifications.API
 
 # Rodar os testes
 dotnet test
