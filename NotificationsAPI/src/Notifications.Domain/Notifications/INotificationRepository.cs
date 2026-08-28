@@ -17,13 +17,4 @@ public interface INotificationRepository : IRepository<Notification>
         Guid userId,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Obtém uma notificação pelo ID do evento originário (para idempotência).
-    /// </summary>
-    /// <param name="eventId">ID do evento.</param>
-    /// <param name="cancellationToken">Token de cancelamento.</param>
-    /// <returns>A notificação se encontrada; caso contrário, nulo.</returns>
-    Task<Notification?> GetByEventIdAsync(
-        Guid eventId,
-        CancellationToken cancellationToken = default);
 }
