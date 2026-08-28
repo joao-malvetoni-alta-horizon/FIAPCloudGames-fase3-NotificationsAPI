@@ -115,8 +115,10 @@ public class UserRegisteredEventConsumerTests(MessagingHostFixture fixture)
         while (DateTime.UtcNow < deadline)
         {
             using IServiceScope scope = _fixture.Services.CreateScope();
-            var repository = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
-            Notification? notification = await repository.GetByEventIdAsync(eventId);
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Notification? notification = await context.Notifications
+                .AsNoTracking()
+                .FirstOrDefaultAsync(n => n.EventId == eventId);
             if (notification is not null)
             {
                 return notification;
