@@ -2,11 +2,11 @@ using System.Text;
 using System.Text.Json;
 using FiapCloudGames.Contracts.Users;
 using FiapCloudGames.RabbitMq.Consumers;
-using Microsoft.EntityFrameworkCore;
+using Amazon.DynamoDBv2.Model;
 using Microsoft.Extensions.DependencyInjection;
 using Notifications.Domain.Notifications;
 using Notifications.Infrastructure.Messaging;
-using Notifications.Infrastructure.Persistence;
+using Notifications.Infrastructure.Persistence.DynamoDb;
 using NSubstitute;
 using RabbitMQ.Client;
 using Shouldly;
@@ -114,14 +114,10 @@ public class UserRegisteredEventConsumerTests(MessagingHostFixture fixture)
         DateTime deadline = DateTime.UtcNow + timeout;
         while (DateTime.UtcNow < deadline)
         {
-            using IServiceScope scope = _fixture.Services.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            Notification? notification = await context.Notifications
-                .AsNoTracking()
-                .FirstOrDefaultAsync(n => n.EventId == eventId);
-            if (notification is not null)
+            Dictionary<string, AttributeValue>? item = await GetItemByEventIdAsync(eventId);
+            if (item is not null)
             {
-                return notification;
+                return NotificationItem.FromItem(item);
             }
 
             await Task.Delay(TimeSpan.FromMilliseconds(250));
@@ -132,9 +128,24 @@ public class UserRegisteredEventConsumerTests(MessagingHostFixture fixture)
 
     private async Task<int> CountNotificationsByEventIdAsync(Guid eventId)
     {
-        using IServiceScope scope = _fixture.Services.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        return await context.Notifications.CountAsync(n => n.EventId == eventId);
+        // A chave de partição é derivada do EventId, então a reentrega do mesmo evento colidiria
+        // na mesma chave: existir o item significa exatamente uma notificação.
+        return await GetItemByEventIdAsync(eventId) is null ? 0 : 1;
+    }
+
+    private async Task<Dictionary<string, AttributeValue>?> GetItemByEventIdAsync(Guid eventId)
+    {
+        GetItemResponse response = await _fixture.DynamoDbClient.GetItemAsync(new GetItemRequest
+        {
+            TableName = _fixture.DynamoDbOptions.TableName,
+            Key = new Dictionary<string, AttributeValue>
+            {
+                [NotificationItem.PartitionKeyAttribute] = new($"EVENT#{eventId}")
+            },
+            ConsistentRead = true
+        });
+
+        return response.IsItemSet ? response.Item : null;
     }
 
     private Task PublishEventAsync(UserRegisteredEvent integrationEvent)

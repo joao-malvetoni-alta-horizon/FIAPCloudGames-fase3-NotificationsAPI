@@ -1,18 +1,17 @@
 namespace Notifications.Infrastructure.DependencyInjection;
 
+using Amazon.DynamoDBv2;
 using FiapCloudGames.Contracts.Payments;
 using FiapCloudGames.Contracts.Users;
 using FiapCloudGames.RabbitMq.Consumers;
 using FiapCloudGames.RabbitMq.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Application.UseCases.Handlers;
 using Domain.Notifications;
-using Domain.Shared;
 using Email;
 using Messaging;
-using Persistence;
+using Persistence.DynamoDb;
 
 /// <summary>
 /// Métodos de extensão para registrar serviços de infraestrutura.
@@ -26,18 +25,26 @@ public static class InfrastructureServiceExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Registrar contexto de banco de dados
-        services.AddDbContext<AppDbContext>((serviceProvider, options) =>
+        // Persistência em DynamoDB. A tabela e o índice são provisionados pelo template.yaml;
+        // não há migração a rodar no startup, o que também elimina a corrida entre execuções
+        // concorrentes da função durante o cold start.
+        services.AddSingleton(new DynamoDbOptions
         {
-            var currentConfiguration = serviceProvider.GetRequiredService<IConfiguration>();
-            options.UseNpgsql(
-                currentConfiguration.GetConnectionString("DefaultConnection"),
-                npgsqlOptions => npgsqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName));
+            TableName = configuration["DynamoDb:TableName"] ?? new DynamoDbOptions().TableName
         });
 
-        // Registrar Unit of Work e repositórios
-        services.AddScoped<INotificationRepository, NotificationRepository>();
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddSingleton<IAmazonDynamoDB>(_ =>
+        {
+            string? serviceUrl = configuration["DynamoDb:ServiceUrl"];
+
+            // ServiceUrl só é definido em desenvolvimento e testes, apontando para o DynamoDB
+            // Local. Na AWS o cliente resolve região e credenciais pelo ambiente da Lambda.
+            return string.IsNullOrWhiteSpace(serviceUrl)
+                ? new AmazonDynamoDBClient()
+                : new AmazonDynamoDBClient(new AmazonDynamoDBConfig { ServiceURL = serviceUrl });
+        });
+
+        services.AddScoped<INotificationRepository, DynamoDbNotificationRepository>();
 
         // Registrar serviço de email
         services.AddSingleton<IEmailService, EmailService>();
@@ -57,15 +64,5 @@ public static class InfrastructureServiceExtensions
                 PaymentsMessaging.RoutingKeys.Status));
 
         return services;
-    }
-
-    /// <summary>
-    /// Realiza migração do banco de dados para a versão mais recente.
-    /// </summary>
-    public static async Task MigrateAsync(this IServiceProvider services)
-    {
-        using IServiceScope scope = services.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await context.Database.MigrateAsync();
     }
 }

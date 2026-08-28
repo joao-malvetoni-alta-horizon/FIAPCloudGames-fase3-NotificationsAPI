@@ -2,7 +2,6 @@ using FiapCloudGames.Contracts.Users;
 using Microsoft.Extensions.Logging;
 using Notifications.Application.UseCases.Handlers;
 using Notifications.Domain.Notifications;
-using Notifications.Domain.Shared;
 using NSubstitute;
 using Shouldly;
 using Xunit;
@@ -14,7 +13,6 @@ namespace Notifications.Application.Tests.UseCases.Handlers;
 /// </summary>
 public class UserRegisteredEventHandlerTests
 {
-    private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly INotificationRepository _notificationRepository = Substitute.For<INotificationRepository>();
 
     private readonly ILogger<UserRegisteredEventHandler>
@@ -26,7 +24,7 @@ public class UserRegisteredEventHandlerTests
 
     public UserRegisteredEventHandlerTests()
     {
-        _handler = new UserRegisteredEventHandler(_notificationRepository, _unitOfWork, _emailService, _logger);
+        _handler = new UserRegisteredEventHandler(_notificationRepository, _emailService, _logger);
     }
 
     [Fact]
@@ -65,7 +63,6 @@ public class UserRegisteredEventHandlerTests
         await _handler.HandleAsync(integrationEvent);
 
         // Assert
-        await _unitOfWork.Received(1).CommitAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -79,13 +76,14 @@ public class UserRegisteredEventHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenCommitThrows_PropagatesException()
+    public async Task HandleAsync_WhenPersistenceThrows_PropagatesException()
     {
         // Arrange
         var integrationEvent = new UserRegisteredEvent(Guid.NewGuid(), "Jane Doe", "jane@example.com");
 
-        _unitOfWork.CommitAsync(Arg.Any<CancellationToken>())
-            .Returns(Task.FromException<int>(new TimeoutException("Connection timeout")));
+        _notificationRepository
+            .AddAsync(Arg.Any<Notification>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromException(new TimeoutException("Connection timeout")));
 
         // Act & Assert
         await Should.ThrowAsync<TimeoutException>(() => _handler.HandleAsync(integrationEvent));

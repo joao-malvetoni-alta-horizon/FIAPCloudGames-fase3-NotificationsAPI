@@ -126,7 +126,7 @@ Tabela única `fcg-notifications`, billing mode `PAY_PER_REQUEST`.
 
 | Atributo | Tipo | Papel |
 |---|---|---|
-| `PK` | S | `NOTIFICATION#{Id}` — partition key |
+| `PK` | S | `EVENT#{EventId}`, ou `NOTIFICATION#{Id}` quando não há evento de origem — partition key |
 | `Id` | S | Guid da notificação |
 | `UserId` | S | Guid do usuário |
 | `Type` | S | `WelcomeEmail` \| `PurchaseConfirmation` |
@@ -144,7 +144,7 @@ Tabela única `fcg-notifications`, billing mode `PAY_PER_REQUEST`.
 | GSI | PK | SK | Por quê |
 |---|---|---|---|
 | `GSI1-UserId` | `UserId` | `CreatedAt` | **Obrigatório.** `PaymentProcessedEventHandler` chama `GetByUserIdAsync` para recuperar o e-mail do usuário de uma notificação anterior (`PaymentProcessedEvent` não carrega o e-mail). |
-| `GSI2-EventId` | `EventId` | — | Suporta `GetByEventIdAsync`. Opcional se a idempotência usar apenas conditional write ([DD-04](#dd-04--idempotência-por-conditional-write)). |
+| ~~`GSI2-EventId`~~ | — | — | **Descartado.** Existia para `GetByEventIdAsync`, removido do repositório por não ter uso em produção. A idempotência vem da chave de partição ([DD-04](#dd-04--idempotência-por-conditional-write)), não de uma consulta prévia. |
 
 `GetAllAsync` e `GetByStatusAsync` da interface só eram usados pelos endpoints HTTP descartados.
 Serão implementados como `Scan` e marcados como não recomendados para produção, ou removidos da
@@ -205,28 +205,48 @@ handlers atuais.
 `UserRegisteredEventMessageProcessor.cs:69` como `PostgresException { SqlState: UniqueViolation }`.
 Isso importa porque tanto SQS standard quanto o broker atual entregam *at-least-once*.
 
-**Decisão.** Substituir por conditional write no DynamoDB:
-`ConditionExpression: attribute_not_exists(EventId)`, tratando `ConditionalCheckFailedException`
-no mesmo ponto onde hoje se trata `UniqueViolation`.
+**Decisão.** Substituir por conditional write no DynamoDB, com a **chave de partição derivada do
+`EventId`** (`PK = EVENT#{EventId}`) e `ConditionExpression: attribute_not_exists(PK)`, tratando
+`ConditionalCheckFailedException` no mesmo ponto onde hoje se trata `UniqueViolation`.
+
+> **Correção de uma versão anterior deste documento.** A decisão original era
+> `attribute_not_exists(EventId)` mantendo `PK = NOTIFICATION#{Id}`. **Isso não funciona.** No
+> DynamoDB a `ConditionExpression` é avaliada contra o item que existe *naquela chave primária*,
+> nunca contra um atributo comum. Com o `Id` sendo um Guid novo a cada notificação, nunca há item
+> naquela chave, a condição sempre passa e a reentrega *at-least-once* do SQS gravaria a
+> notificação duas vezes — mandando dois e-mails. A unicidade só é garantida sobre a própria
+> chave, então a chave precisa carregar o `EventId`.
+
+Quando não há `EventId`, a chave cai para `NOTIFICATION#{Id}` e não há deduplicação — semântica
+correta, já que sem evento de origem não existe reentrega a deduplicar. Em produção os dois
+handlers sempre propagam o `EventId` do evento de integração.
 
 **Consequência.** O `DynamoDbNotificationRepository` traduz a exceção da AWS para a
 `DuplicateEventException` de domínio, e a camada de mensageria deixa de depender do Npgsql —
 uma dependência de infraestrutura que hoje vaza para o processador de mensagens.
 
-### DD-05 — `IUnitOfWork` vira no-op
+### DD-05 — `IUnitOfWork` é removida do domínio
 
-**Contexto.** Os handlers seguem `AddAsync(...)` seguido de `CommitAsync(...)`. DynamoDB não tem
-unidade de trabalho equivalente.
+**Contexto.** Os handlers seguiam `AddAsync(...)` seguido de `CommitAsync(...)`. DynamoDB não tem
+unidade de trabalho equivalente: a escrita do repositório é imediata.
 
-**Decisão.** `AddAsync` escreve imediatamente (com o conditional write do DD-04) e `CommitAsync`
-retorna `Task.FromResult(1)` sem efeito.
+**Decisão.** Remover `IUnitOfWork` do domínio e a chamada a `CommitAsync` dos handlers.
 
-**Justificativa.** Preserva a interface e mantém `Notifications.Application` literalmente inalterado.
-A alternativa — remover `IUnitOfWork` do domínio — daria um design mais honesto, mas propaga
-alterações por handlers e testes sem ganho funcional nesta fase.
+> **Revisão de uma versão anterior deste documento.** A decisão original era manter a interface com
+> uma implementação no-op (`CommitAsync` retornando `Task.FromResult(1)`), para deixar
+> `Notifications.Application` literalmente inalterado. O próprio documento já registrava, como
+> dívida técnica, que "um `IUnitOfWork` que não faz nada é uma abstração enganosa".
+>
+> Optou-se por pagar a dívida na hora em vez de registrá-la. A interface prometeria um limite
+> transacional inexistente — quem lê `await unitOfWork.CommitAsync()` infere atomicidade, e no
+> DynamoDB duas escritas no mesmo handler são independentes. O custo medido de remover foi de seis
+> arquivos com edições pequenas, bem menor do que o "propaga alterações por handlers e testes" que
+> a decisão original supunha.
 
-**Consequência.** Um `IUnitOfWork` que não faz nada é uma abstração enganosa. Deve ser documentado
-com XML doc explícito na implementação. Registrado como dívida técnica.
+**Consequência.** `Notifications.Application` mudou: os dois handlers perderam um parâmetro de
+construtor e uma linha. Em troca, o código não afirma mais uma garantia que não entrega. O teste
+que cobria a propagação de falha no commit passou a cobrir a falha no `AddAsync`, que é onde a
+escrita de fato ocorre.
 
 ### DD-06 — Uma função por tipo de evento
 

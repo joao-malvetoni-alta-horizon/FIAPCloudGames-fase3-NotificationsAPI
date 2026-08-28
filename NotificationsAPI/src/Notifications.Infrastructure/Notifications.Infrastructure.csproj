@@ -6,10 +6,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.103.5"/>
         <PackageReference Include="FiapCloudGames.Contracts" Version="6.0.0"/>
         <PackageReference Include="FiapCloudGames.RabbitMq" Version="1.0.0"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0"/>
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.0"/>
         <PackageReference Include="Serilog" Version="4.2.0"/>
         <PackageReference Include="Serilog.AspNetCore" Version="8.1.1"/>
     </ItemGroup>
