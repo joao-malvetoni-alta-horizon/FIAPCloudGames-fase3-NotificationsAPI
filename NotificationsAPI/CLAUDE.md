@@ -115,7 +115,7 @@ NotificationsAPI/
 │   ├── UseCases/
 │   └── DependencyInjection/
 └── NotificationsAPI.Infrastructure/  ← Persistência, logging, mensageria
-    ├── Persistence/                  ← EF Core, Repositories
+    ├── Persistence/DynamoDb/         ← Repositório DynamoDB e mapeamento
     ├── Configuration/                ← Serilog setup
     ├── Email/                        ← Serviços de email
     └── Messaging/                    ← RabbitMQ setup
@@ -129,8 +129,7 @@ NotificationsAPI/
 ### 📚 Stack Tecnológico
 
 - **.NET 10.0** - Framework
-- **Entity Framework Core 9.0.0** - ORM
-- **PostgreSQL** - Database
+- **DynamoDB** - Database (AWS SDK v4)
 - **RabbitMQ** - Message Broker
 - **Serilog 4.2.0** - Structured Logging
 - **NSubstitute** - Mocking (testes)
@@ -143,7 +142,8 @@ NotificationsAPI/
 **Variáveis de Ambiente Necessárias:**
 ```bash
 ASPNETCORE_ENVIRONMENT=Development
-ConnectionStrings__DefaultConnection=Host=localhost;Database=notifications_db;Username=postgres;Password=postgres
+DynamoDb__TableName=fcg-notifications
+DynamoDb__ServiceUrl=http://localhost:8000
 RabbitMq__Host=localhost
 RabbitMq__Port=5672
 RabbitMq__Username=guest

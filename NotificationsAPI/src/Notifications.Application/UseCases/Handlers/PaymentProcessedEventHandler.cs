@@ -1,7 +1,6 @@
 namespace Notifications.Application.UseCases.Handlers;
 
 using Microsoft.Extensions.Logging;
-using Notifications.Domain.Shared;
 using FiapCloudGames.Contracts.Payments;
 using Domain.Notifications;
 
@@ -11,7 +10,6 @@ using Domain.Notifications;
 /// </summary>
 public partial class PaymentProcessedEventHandler(
     INotificationRepository notificationRepository,
-    IUnitOfWork unitOfWork,
     IEmailService emailService,
     ILogger<PaymentProcessedEventHandler> logger) : IEventHandler<PaymentProcessedEvent>
 {
@@ -47,7 +45,6 @@ public partial class PaymentProcessedEventHandler(
                 integrationEvent.EventId);
 
             await notificationRepository.AddAsync(notification, cancellationToken);
-            await unitOfWork.CommitAsync(cancellationToken);
 
             LogPurchaseConfirmationNotificationCreated(integrationEvent.UserId);
 

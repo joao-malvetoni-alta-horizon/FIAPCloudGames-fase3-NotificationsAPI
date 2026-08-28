@@ -2,7 +2,6 @@ using FiapCloudGames.Contracts.Payments;
 using Microsoft.Extensions.Logging;
 using Notifications.Application.UseCases.Handlers;
 using Notifications.Domain.Notifications;
-using Notifications.Domain.Shared;
 using NSubstitute;
 using Shouldly;
 using Xunit;
@@ -14,7 +13,6 @@ namespace Notifications.Application.Tests.UseCases.Handlers;
 /// </summary>
 public class PaymentProcessedEventHandlerTests
 {
-    private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly INotificationRepository _notificationRepository = Substitute.For<INotificationRepository>();
 
     private readonly ILogger<PaymentProcessedEventHandler>
@@ -26,7 +24,7 @@ public class PaymentProcessedEventHandlerTests
 
     public PaymentProcessedEventHandlerTests()
     {
-        _handler = new PaymentProcessedEventHandler(_notificationRepository, _unitOfWork, _emailService, _logger);
+        _handler = new PaymentProcessedEventHandler(_notificationRepository, _emailService, _logger);
     }
 
     private void SetUpKnownRecipient(Guid userId, string email, string name)
@@ -73,7 +71,6 @@ public class PaymentProcessedEventHandlerTests
         await _handler.HandleAsync(integrationEvent);
 
         // Assert
-        await _unitOfWork.Received(1).CommitAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -129,15 +126,16 @@ public class PaymentProcessedEventHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenCommitThrows_PropagatesException()
+    public async Task HandleAsync_WhenPersistenceThrows_PropagatesException()
     {
         // Arrange
         var userId = Guid.NewGuid();
         SetUpKnownRecipient(userId, "jane@example.com", "Jane Doe");
         var integrationEvent = new PaymentProcessedEvent(userId, Guid.NewGuid(), PaymentStatus.Approved);
 
-        _unitOfWork.CommitAsync(Arg.Any<CancellationToken>())
-            .Returns(Task.FromException<int>(new TimeoutException("Connection timeout")));
+        _notificationRepository
+            .AddAsync(Arg.Any<Notification>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromException(new TimeoutException("Connection timeout")));
 
         // Act & Assert
         await Should.ThrowAsync<TimeoutException>(() => _handler.HandleAsync(integrationEvent));

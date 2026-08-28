@@ -19,7 +19,7 @@ Clean Architecture em 3 camadas:
 NotificationsAPI/
 ├── src/Notifications.Domain/          Regras de negócio (aggregate Notification)
 ├── src/Notifications.Application/     Casos de uso e handlers de eventos
-└── src/Notifications.Infrastructure/  Persistência (EF Core + PostgreSQL), email simulado e mensageria (RabbitMQ)
+└── src/Notifications.Infrastructure/  Persistência (DynamoDB), email simulado e mensageria (RabbitMQ)
 ```
 
 > **Migração em andamento.** A API HTTP foi removida (SDD, DD-02). O host novo — a função
@@ -31,7 +31,7 @@ Mais detalhes em [`NotificationsAPI/CLAUDE.md`](NotificationsAPI/CLAUDE.md).
 ## Stack tecnológico
 
 - .NET 10
-- Entity Framework Core 9 + PostgreSQL
+- DynamoDB (AWS SDK v4)
 - RabbitMQ (via pacote `FiapCloudGames.RabbitMq`)
 - Serilog (structured logging)
 
@@ -40,7 +40,8 @@ Mais detalhes em [`NotificationsAPI/CLAUDE.md`](NotificationsAPI/CLAUDE.md).
 | Variável | Obrigatória | Padrão | Descrição |
 |---|---|---|---|
 | `ASPNETCORE_ENVIRONMENT` | Não | — | Ambiente de execução (`Development`, `Production`, etc.) |
-| `ConnectionStrings__DefaultConnection` | Sim | — | Connection string do PostgreSQL (ex.: `Host=localhost;Port=5432;Database=fcgdb;Username=fcg;Password=fcg123`) |
+| `DynamoDb__TableName` | Não | `fcg-notifications` | Nome da tabela de notificações |
+| `DynamoDb__ServiceUrl` | Não | — | Endpoint do DynamoDB Local, só em desenvolvimento e testes. Vazio na AWS, onde o SDK resolve pelo ambiente da Lambda |
 | `RabbitMq__Host` | Não | `localhost` | Host do RabbitMQ |
 | `RabbitMq__Port` | Não | `5672` | Porta do RabbitMQ |
 | `RabbitMq__Username` | Não | `guest` | Usuário do RabbitMQ |

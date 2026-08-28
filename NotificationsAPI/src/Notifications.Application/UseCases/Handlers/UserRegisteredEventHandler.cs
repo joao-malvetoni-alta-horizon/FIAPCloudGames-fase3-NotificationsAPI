@@ -1,7 +1,6 @@
 namespace Notifications.Application.UseCases.Handlers;
 
 using Microsoft.Extensions.Logging;
-using Notifications.Domain.Shared;
 using FiapCloudGames.Contracts.Users;
 using Domain.Notifications;
 
@@ -11,7 +10,6 @@ using Domain.Notifications;
 /// </summary>
 public partial class UserRegisteredEventHandler(
     INotificationRepository notificationRepository,
-    IUnitOfWork unitOfWork,
     IEmailService emailService,
     ILogger<UserRegisteredEventHandler> logger) : IEventHandler<UserRegisteredEvent>
 {
@@ -29,7 +27,6 @@ public partial class UserRegisteredEventHandler(
                 integrationEvent.EventId);
 
             await notificationRepository.AddAsync(notification, cancellationToken);
-            await unitOfWork.CommitAsync(cancellationToken);
 
             LogWelcomeNotificationCreated(integrationEvent.UserId);
 

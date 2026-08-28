@@ -1,3 +1,4 @@
+using Amazon.DynamoDBv2;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -5,32 +6,28 @@ using Microsoft.Extensions.Hosting;
 using Notifications.Application.DependencyInjection;
 using Notifications.Domain.Notifications;
 using Notifications.Infrastructure.DependencyInjection;
+using Notifications.Infrastructure.Persistence.DynamoDb;
+using Notifications.Tests.Integration.Infrastructure.Persistence.DynamoDb;
 using NSubstitute;
-using Testcontainers.PostgreSql;
 using Testcontainers.RabbitMq;
 
 namespace Notifications.Tests.Integration.Messaging;
 
 /// <summary>
 /// Sobe um host genérico com a mesma composição de DI usada em produção
-/// (<c>AddApplication</c> + <c>AddInfrastructure</c>), contra PostgreSQL e RabbitMQ reais via
+/// (<c>AddApplication</c> + <c>AddInfrastructure</c>), contra DynamoDB Local e RabbitMQ reais via
 /// TestContainers, substituindo o <see cref="IEmailService"/> por um duplo de teste. Valida o fluxo
 /// de mensageria ponta a ponta: evento publicado → consumidor → notificação persistida → email "enviado".
 /// </summary>
 /// <remarks>
 /// Usa <see cref="IHost"/> em vez de <c>WebApplicationFactory&lt;Program&gt;</c> porque o projeto
 /// Notifications.API foi removido. Os consumidores são registrados dentro de
-/// <c>AddInfrastructure</c>, não no antigo <c>Program.cs</c>, então nenhuma cobertura se perde —
-/// o host web só existia para hospedar os <c>BackgroundService</c>, papel que o host genérico cumpre.
+/// <c>AddInfrastructure</c>, então o host genérico cumpre o papel de hospedar os
+/// <c>BackgroundService</c> sem nenhuma dependência de HTTP.
 /// </remarks>
 public sealed class MessagingHostFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _postgresContainer = new PostgreSqlBuilder()
-        .WithDatabase("notifications_messaging_test")
-        .WithUsername("test")
-        .WithPassword("test")
-        .WithCleanUp(true)
-        .Build();
+    private readonly DynamoDbTable _table = new();
 
     private IHost? _host;
 
@@ -42,21 +39,24 @@ public sealed class MessagingHostFixture : IAsyncLifetime
 
     public IEmailService EmailServiceSubstitute { get; } = Substitute.For<IEmailService>();
 
-    /// <summary>
-    /// Provedor de serviços do host, para os testes resolverem repositórios e consumidores.
-    /// </summary>
+    /// <summary>Cliente apontado para o DynamoDB Local, para os testes verificarem o que foi gravado.</summary>
+    public IAmazonDynamoDB DynamoDbClient => _table.Client;
+
+    public DynamoDbOptions DynamoDbOptions => _table.Options;
+
     public IServiceProvider Services => _host?.Services
         ?? throw new InvalidOperationException("O host ainda não foi inicializado.");
 
     public async Task InitializeAsync()
     {
-        await Task.WhenAll(_postgresContainer.StartAsync(), RabbitMqContainer.StartAsync());
+        await Task.WhenAll(_table.StartAsync(), RabbitMqContainer.StartAsync());
 
         HostApplicationBuilder builder = Host.CreateApplicationBuilder();
 
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["ConnectionStrings:DefaultConnection"] = _postgresContainer.GetConnectionString(),
+            ["DynamoDb:TableName"] = _table.Options.TableName,
+            ["DynamoDb:ServiceUrl"] = _table.ServiceUrl,
             ["RabbitMq:Host"] = RabbitMqContainer.Hostname,
             ["RabbitMq:Port"] = RabbitMqContainer.GetMappedPublicPort(5672).ToString(),
             ["RabbitMq:Username"] = "guest",
@@ -71,11 +71,9 @@ public sealed class MessagingHostFixture : IAsyncLifetime
 
         _host = builder.Build();
 
-        // O antigo Program.cs migrava o banco no startup; aqui a responsabilidade é explícita.
-        await _host.Services.MigrateAsync();
-
         // Sobe os RabbitMqConsumerHostedService. Cada teste ainda aguarda o sinal Started do
-        // consumidor que lhe interessa antes de publicar.
+        // consumidor que lhe interessa antes de publicar. Não há migração a rodar: a tabela é
+        // criada pelo fixture, como o template.yaml fará em produção.
         await _host.StartAsync();
     }
 
@@ -89,7 +87,6 @@ public sealed class MessagingHostFixture : IAsyncLifetime
 
         await RabbitMqContainer.StopAsync();
         await RabbitMqContainer.DisposeAsync();
-        await _postgresContainer.StopAsync();
-        await _postgresContainer.DisposeAsync();
+        await _table.DisposeAsync();
     }
 }

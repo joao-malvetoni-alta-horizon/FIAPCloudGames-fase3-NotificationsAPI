@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Único ponto do projeto que conhece o contêiner de injeção de dependência para resolver
 /// <see cref="IEventHandler{TEvent}"/>. Cria um escopo de DI por evento despachado, já que os
-/// handlers dependem de serviços <c>Scoped</c> (ex.: <see cref="Domain.Shared.IUnitOfWork"/>).
+/// handlers dependem de serviços <c>Scoped</c> (ex.: <see cref="Domain.Notifications.INotificationRepository"/>).
 /// </summary>
 public class EventDispatcher(IServiceScopeFactory scopeFactory) : IEventDispatcher
 {
