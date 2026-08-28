@@ -15,13 +15,6 @@ public class NotificationRepository(AppDbContext context) : INotificationReposit
             .FirstOrDefaultAsync(n => n.Id == id, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<Notification>> GetAllAsync(CancellationToken cancellationToken = default)
-    {
-        return await context.Notifications
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
-    }
-
     public async Task AddAsync(Notification entity, CancellationToken cancellationToken = default)
     {
         await context.Notifications.AddAsync(entity, cancellationToken);
@@ -44,17 +37,6 @@ public class NotificationRepository(AppDbContext context) : INotificationReposit
         return await context.Notifications
             .AsNoTracking()
             .Where(n => n.UserId == userId)
-            .OrderByDescending(n => n.CreatedAt)
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task<IReadOnlyList<Notification>> GetByStatusAsync(
-        NotificationStatus status,
-        CancellationToken cancellationToken = default)
-    {
-        return await context.Notifications
-            .AsNoTracking()
-            .Where(n => n.Status == status)
             .OrderByDescending(n => n.CreatedAt)
             .ToListAsync(cancellationToken);
     }

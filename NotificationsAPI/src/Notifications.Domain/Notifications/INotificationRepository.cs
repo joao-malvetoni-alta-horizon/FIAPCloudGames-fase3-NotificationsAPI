@@ -18,16 +18,6 @@ public interface INotificationRepository : IRepository<Notification>
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Obtém todas as notificações com um status específico.
-    /// </summary>
-    /// <param name="status">O status para filtrar.</param>
-    /// <param name="cancellationToken">Token de cancelamento.</param>
-    /// <returns>Lista de notificações com o status especificado.</returns>
-    Task<IReadOnlyList<Notification>> GetByStatusAsync(
-        NotificationStatus status,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Obtém uma notificação pelo ID do evento originário (para idempotência).
     /// </summary>
     /// <param name="eventId">ID do evento.</param>
