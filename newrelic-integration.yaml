@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  IAM Role para a integracao nativa AWS -> New Relic (polling de metricas via
+  API, ex.: Lambda Duration/Errors/Throttles/Invocations aparecendo no New
+  Relic sem precisar de agente). A New Relic assume esta role via
+  sts:AssumeRole a partir da conta AWS oficial deles (754728514883), usando
+  um ExternalId igual ao Account ID da conta New Relic do grupo. Depois de
+  criada, o ARN da role e usado na mutation GraphQL `cloudLinkAccount` da
+  API NerdGraph da New Relic para concluir a integracao.
+
+Parameters:
+  NewRelicAccountId:
+    Type: String
+    Description: >
+      ID numerico da conta New Relic do grupo (usado como sts:ExternalId).
+      Nao e um segredo, apenas um identificador da conta.
+    Default: "8469551"
+
+Resources:
+  NewRelicIntegrationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: NewRelicInfrastructure-Integrations
+      Description: New Relic Cloud integration role (leitura de metricas via API polling)
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: "754728514883"
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Ref NewRelicAccountId
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
+
+Outputs:
+  NewRelicIntegrationRoleArn:
+    Description: ARN da role a ser informado na New Relic (cloudLinkAccount)
+    Value: !GetAtt NewRelicIntegrationRole.Arn
