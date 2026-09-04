@@ -2,6 +2,7 @@ using FiapCloudGames.Contracts.Payments;
 using Microsoft.Extensions.Logging;
 using Notifications.Application.UseCases.Handlers;
 using Notifications.Domain.Notifications;
+using Notifications.Domain.Shared;
 using NSubstitute;
 using Shouldly;
 using Xunit;
@@ -108,7 +109,7 @@ public class PaymentProcessedEventHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenApprovedButEmailUnknown_DoesNotCreateNotificationOrSendEmail()
+    public async Task HandleAsync_WhenApprovedButEmailUnknown_ThrowsRecipientNotReadyException()
     {
         // Arrange - usuário sem nenhuma notificação anterior nesta base (email desconhecido)
         var userId = Guid.NewGuid();
@@ -116,10 +117,10 @@ public class PaymentProcessedEventHandlerTests
             .Returns(Array.Empty<Notification>());
         var integrationEvent = new PaymentProcessedEvent(userId, Guid.NewGuid(), PaymentStatus.Approved);
 
-        // Act
-        await _handler.HandleAsync(integrationEvent);
-
-        // Assert
+        // Act & Assert
+        var exception = await Should.ThrowAsync<RecipientNotReadyException>(
+            () => _handler.HandleAsync(integrationEvent));
+        exception.UserId.ShouldBe(userId);
         await _notificationRepository.DidNotReceive().AddAsync(Arg.Any<Notification>(), Arg.Any<CancellationToken>());
         await _emailService.DidNotReceive().SendPurchaseConfirmationAsync(
             Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());

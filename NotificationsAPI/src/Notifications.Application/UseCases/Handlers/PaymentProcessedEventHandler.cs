@@ -3,6 +3,7 @@ namespace Notifications.Application.UseCases.Handlers;
 using Microsoft.Extensions.Logging;
 using FiapCloudGames.Contracts.Payments;
 using Domain.Notifications;
+using Domain.Shared;
 
 /// <summary>
 /// Manipulador de eventos para quando um pagamento é processado. Se aprovado, cria uma
@@ -34,7 +35,7 @@ public partial class PaymentProcessedEventHandler(
             if (reference is null)
             {
                 LogRecipientEmailNotFound(integrationEvent.UserId);
-                return;
+                throw new RecipientNotReadyException(integrationEvent.UserId);
             }
 
             var notification = Notification.Create(
