@@ -1,0 +1,20 @@
+{
+  "Records": [
+    {
+      "messageId": "059f36b4-87a3-44ab-83d2-661975830a7e",
+      "receiptHandle": "fake-receipt-handle",
+      "body": "{\"UserId\":\"3fa85f64-5717-4562-b3fc-2c963f66afa7\",\"GameId\":\"5fa85f64-5717-4562-b3fc-2c963f66afa8\",\"Status\":1,\"EventId\":\"4fa85f64-5717-4562-b3fc-2c963f66afa6\",\"OccurredAt\":\"2026-09-02T12:00:00Z\"}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1545082649183",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1545082649185"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "e4e68fb7bd0e697a0ae8f1bb342846b4",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-east-1:123456789012:fcg-notifications-payment-processed",
+      "awsRegion": "us-east-1"
+    }
+  ]
+}
