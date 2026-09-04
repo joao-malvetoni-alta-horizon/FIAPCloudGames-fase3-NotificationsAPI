@@ -17,11 +17,11 @@ namespace Notifications.Tests.Integration.Infrastructure.Persistence.DynamoDb;
 /// </remarks>
 public sealed class DynamoDbTable : IAsyncDisposable
 {
+    // -sharedDb é obrigatório aqui. Sem ele o DynamoDB Local mantém um banco separado por
+    // (access key, região), e o cliente montado pelo DI — que resolve credenciais do ambiente —
+    // não enxergaria a tabela criada por este fixture.
     private readonly DynamoDbContainer _container = new DynamoDbBuilder()
         .WithImage("amazon/dynamodb-local:latest")
-        // -sharedDb é obrigatório aqui. Sem ele o DynamoDB Local mantém um banco separado por
-        // (access key, região), e o cliente montado pelo DI — que resolve credenciais do ambiente —
-        // não enxergaria a tabela criada por este fixture.
         .WithCommand("-jar", "DynamoDBLocal.jar", "-inMemory", "-sharedDb")
         .WithCleanUp(true)
         .Build();
