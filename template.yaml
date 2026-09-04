@@ -1,0 +1,199 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  FCG NotificationsAPI - função serverless acionada por SNS+SQS, substituindo o container
+  RabbitMQ sempre ativo da Fase 2. Tech Challenge Fase 3.
+
+Parameters:
+  NewRelicLicenseKeySecretName:
+    Type: String
+    Default: fcg/notifications/new-relic-license-key
+    Description: Nome do secret no Secrets Manager que guarda a license key do New Relic.
+
+Globals:
+  Function:
+    Runtime: dotnet10
+    Timeout: 30
+    MemorySize: 256
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        DynamoDb__TableName: !Ref NotificationsTable
+        NEW_RELIC_LICENSE_KEY: !Sub '{{resolve:secretsmanager:${NewRelicLicenseKeySecretName}}}'
+
+Resources:
+
+  NotificationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: fcg-notifications
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: UserId
+          AttributeType: S
+        - AttributeName: CreatedAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: GSI1-UserId
+          KeySchema:
+            - AttributeName: UserId
+              KeyType: HASH
+            - AttributeName: CreatedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  UserEventsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: fcg-user-events
+
+  UserRegisteredDlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: fcg-notifications-user-registered-dlq
+      MessageRetentionPeriod: 1209600
+
+  UserRegisteredQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: fcg-notifications-user-registered
+      VisibilityTimeout: 180
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt UserRegisteredDlq.Arn
+        maxReceiveCount: 5
+
+  UserRegisteredQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref UserRegisteredQueue
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: sns.amazonaws.com
+            Action: sqs:SendMessage
+            Resource: !GetAtt UserRegisteredQueue.Arn
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !Ref UserEventsTopic
+
+  UserRegisteredSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref UserEventsTopic
+      Protocol: sqs
+      Endpoint: !GetAtt UserRegisteredQueue.Arn
+      RawMessageDelivery: true
+
+  PaymentEventsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: fcg-payment-events
+
+  PaymentProcessedDlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: fcg-notifications-payment-processed-dlq
+      MessageRetentionPeriod: 1209600
+
+  PaymentProcessedQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: fcg-notifications-payment-processed
+      VisibilityTimeout: 180
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt PaymentProcessedDlq.Arn
+        maxReceiveCount: 5
+
+  PaymentProcessedQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref PaymentProcessedQueue
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: sns.amazonaws.com
+            Action: sqs:SendMessage
+            Resource: !GetAtt PaymentProcessedQueue.Arn
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !Ref PaymentEventsTopic
+
+  PaymentProcessedSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref PaymentEventsTopic
+      Protocol: sqs
+      Endpoint: !GetAtt PaymentProcessedQueue.Arn
+      RawMessageDelivery: true
+
+  UserRegisteredFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: fcg-notifications-user-registered
+      CodeUri: NotificationsAPI/src/Notifications.Functions/
+      Handler: 'Notifications.Functions::Notifications.Functions.Functions::UserRegisteredHandler'
+      AutoPublishAlias: prod
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NotificationsTable
+        - Statement:
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${NewRelicLicenseKeySecretName}*'
+      Events:
+        UserRegisteredQueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt UserRegisteredQueue.Arn
+            BatchSize: 10
+            MaximumBatchingWindowInSeconds: 5
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+
+  PaymentProcessedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: fcg-notifications-payment-processed
+      CodeUri: NotificationsAPI/src/Notifications.Functions/
+      Handler: 'Notifications.Functions::Notifications.Functions.Functions::PaymentProcessedHandler'
+      AutoPublishAlias: prod
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NotificationsTable
+        - Statement:
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${NewRelicLicenseKeySecretName}*'
+      Events:
+        PaymentProcessedQueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt PaymentProcessedQueue.Arn
+            BatchSize: 10
+            MaximumBatchingWindowInSeconds: 5
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+
+Outputs:
+  UserEventsTopicArn:
+    Description: ARN do tópico SNS para o UsersAPI publicar UserRegisteredEvent
+    Value: !Ref UserEventsTopic
+  PaymentEventsTopicArn:
+    Description: ARN do tópico SNS para o PaymentsAPI publicar PaymentProcessedEvent
+    Value: !Ref PaymentEventsTopic
+  NotificationsTableName:
+    Description: Nome da tabela DynamoDB de notificações
+    Value: !Ref NotificationsTable
